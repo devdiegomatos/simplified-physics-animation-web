@@ -186,9 +186,18 @@ Este subalgoritmo constroi iterativamente um simplex dentro da CSO que tenta inc
 
 Para cada dimensão do simplex Q, o subalgoritmo de Ericson calcula se a origem está contida ou não no simplex usando regiões de Voronoi, remove pontos antigos do simplex e procura por uma nova direção que maximize as chances do próximo ponto de suporte conter a origem. Para cada dimensão é feito uma conta diferente, neste trabalho iremos trabalhar apenas com objetos em 2D, por isso trataremos apenas dos casos 1-simplex e 2-simplex. Para detalhar essa rotina usaremos uma conveção de nomear os pontos do Simplex em ordem alfabética, com o ponto mais recente sendo A.
 
-Caso 1-simplex (\textit{ClosestPointOnEdgeToPoint()}) estamos trabalhando com um segmento de reta $\overline{AB}$. Isso divide o espaço em três regiões de Voronoi como ilustrado pela Figura: o espaço mais próximo de A, mais próximo de B e o espaço mais próximo de $\overline{AB}$. Se a origem estiver na região mais próxima de A, então jogamos fora o ponto B. Se estiver na região no lado mais próximo de B, então, mantemos B e jogamos A para fora. Caso contrário, deve estar mais próximo do próprio segmento de linha (nessa região central), e mantemos ambos A e B. ponto de suporte é buscado na direção normal ao segmento que aponta para a origem. 
+Caso 1-simplex (\textit{ClosestPointOnEdgeToPoint()}) estamos trabalhando com um segmento de reta $\overline{AB}$. Isso divide o espaço em três regiões de Voronoi como ilustrado pela Figura: o espaço mais próximo de A, mais próximo de B e o espaço mais próximo de $\overline{AB}$. Se a origem estiver na região mais próxima de A, então jogamos fora o ponto B. Se estiver na região no lado mais próximo de B, então, mantemos B e jogamos A para fora. Caso contrário, deve estar mais próximo do próprio segmento de linha (na região central), e mantemos ambos A e B. ponto de suporte é buscado na direção normal ao segmento que aponta para a origem. 
+
+Porém, a origem sempre estará contida na região de Voronoi do segmento, pois, por construção os pontos de suporte A e B estão no limite do CSO. Logo, se a origem estivesse na região de A ou B isso seria um contradição, pois isso significaria que A ou B estão mais próximos da origem do que o segmento $\overline{AB}$, o que não é possível. Dessa forma, a próxima direção de busca apontando para origem é perpendicular ao segmento $\overline{AB}$.
 
 Caso 2-simplex (\textit{ClosestPointOnTriangleToPoint()}), temos um triangulo que divide o espaço em 7 regiões de Voronoi: regiões de vértice $V_A$, $V_B$, $V_C$, regiões de aresta $\overline{AB}, \overline{BC}, \overline{CA}$ e o interior $\triangle ABC$, como ilustrado na Figura~\ref{fig:gjk-ericson-voronoi}. Como estamos trabalhando em 2D, se a origem está contida no triângulo, então podemos afirmar que a distância entre A e B é zero. Caso contrário, dependendo de qual região ele cai, manteremos essa parte da figura e iteraremos novamente. Em 3D seria necessário manter todos os três pontos e considerar que a origem possa estar para cima ou para baixo do plano do triangulo. 
+
+\begin{figure}[htb]
+	\centering
+	\includesvg[width=\linewidth]{gjk-ericson-voronoi.svg}
+	\caption{Regiões de Voronoi para o caso 3-simplex.}
+	\label{fig:gjk-ericson-voronoi}
+\end{figure}
 
 Os testes para dois tipos de região de Voronoi, região de Vértice ou região de Aresta seguem como:
 \begin{enumerate}
@@ -205,14 +214,7 @@ Os testes para dois tipos de região de Voronoi, região de Vértice ou região 
 		\end{itemize}
 \end{enumerate}
 
-No entanto, o processo de encontrar o simplex ideal elimina a necessidade de verificar quatro dessas regiões. Como o ponto de suporte A foi o primeiro a ser adicionado, B foi o segundo e C foi o terceiro. O ponto de suporte C foi adicionado como resultado de encontrar o vetor normal para $\overline{AB}$. Isso significa que a região de Voronoi $E_{AB}$, não pode conter a origem. As três regiões de Vértice também não podem conter a origem, uma vez que essas regiões estão além dos três pontos de apoio do simplex, que foram derivados dos pontos de suporte, que ficam no limite do CSO. Isso deixa apenas as regiões de Voronoi $E_{AC}$, $E_{BC}$ e $\triangle ABC$ para investigar.
-
-\begin{figure}[htb]
-	\centering
-	\includesvg[width=\linewidth]{gjk-ericson-voronoi.svg}
-	\caption{Regiões de Voronoi para o caso 3-simplex.}
-	\label{fig:gjk-ericson-voronoi}
-\end{figure}
+No entanto, o processo de encontrar o simplex ideal elimina a necessidade de verificar quatro dessas regiões. Como o ponto de suporte C foi o primeiro a ser adicionado, B foi o segundo e A foi o terceiro. O ponto de suporte A foi adicionado como resultado de encontrar o vetor normal para $\overline{BC}$. Isso significa que a região de Voronoi $E_{BC}$, não pode conter a origem. As três regiões de Vértice também não podem conter a origem, uma vez que essas regiões estão além dos limites do CSO, que foram derivados dos pontos de suporte. Isso deixa apenas as regiões $E_{AC}$, $E_{AB}$ e $\triangle ABC$ para investigar.
 
 \subsection*{Boolean GJK}
 
