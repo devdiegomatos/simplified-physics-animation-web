@@ -74,11 +74,24 @@ Com o passar dos anos, o subalgoritmo de distância de Johnson foi trocado a fav
 
 Sejam $A$ e $B$ dois conjuntos convexos compactos em $\mathbb{R}^m$. A distância euclidiana entre eles é definida como:
 
-\begin{equation}
+$$
 d(A,B) = \min_{a \in A, b \in B} \| a - b \|
-\end{equation}
+$$
 
 Quando $A$ e $B$ se intersectam, $d(A,B) = 0$.
+
+\subsection*{O Fecho Convexo}
+
+Seja $A \subset \mathbb{R}^d$ um conjunto não vazio de pontos. O fecho convexo de $A$, denotado por $\mathrm{conv}(A)$ ou $\mathrm{CH}(A)$, é definido como o menor conjunto convexo que contém $A$. 
+
+Geometricamente, o fecho convexo corresponde ao ``invólucro'' mínimo que envolve completamente o conjunto $A$. No caso bidimensional, pode ser interpretado como o polígono convexo de menor área que contém todos os pontos de $A$, como ilustrado pela Figura~\ref{fig:convex-hull}; em três dimensões, como o menor poliedro convexo que os contém.
+
+\begin{figure}[htb]
+	\centering
+	\includesvg[width=0.7\linewidth]{convex-hull}
+	\caption{Fecho convexo de um conjunto de pontos.}
+	\label{fig:convex-hull}
+\end{figure}
 
 \subsection*{Soma de Minkowski}
 
@@ -114,7 +127,7 @@ Isso se deve ao fato de que se existe um ponto $p_A \subset A$ igual a $p_B \sub
 A grande coisa do algoritmo é que não é necessário calcular explicitamente o CSO, apenas uma amostra do CSO, sob demanda, usando um mapeamento suporte. Uma função de suporte é definida tal que: seja A um conjunto qualquer, o suporte de A na direção $\vec{d}$ retorna o ponto que pertence a superfície de A mais distante da origem na direção $\vec{d}$, esse ponto é chamado de ponto de suporte. \citeonline{gjk_enhanced} mostraram que é possível representar qualquer objeto convexo com a função suporte correta, como por exemplo:
 \begin{align*}
 	\text{Politopo}&: S_A (\vec{d}) = max\{v \cdot a : a \in A\}, \\
-	\text{Esfera com raio R}&: S_A (\vec{d}) = R \cdot \vec{d}
+	\text{Esfera com raio R}&: S_A (\vec{d}) = O + R \cdot \vec{d}
 \end{align*}
 
 Também é possível realizar aritmética com função suporte
@@ -192,7 +205,15 @@ Caso contrário, o ponto $S$ é adicionado ao simplex $Q$. Em seguida, aplica-se
 
 Se, durante esse processo, for identificado que a origem pertence ao fecho convexo do simplex corrente, conclui-se que o CSO contém a origem e, consequentemente, que os objetos $A$ e $B$ se intersectam. Nesse caso, o algoritmo retorna distância zero. Caso contrário, o processo iterativo continua até que o critério de parada seja satisfeito.
 
-% \textbf{DEFINIR REGIÃO VORONOI}
+\subsection*{Diagrama de Voronoi}
+
+Um diagrama Voronoi conhecido como uma tesselação de Voronoi ou partição Voronoi é uma estrutura geométrica que divide um determinado espaço nas regiões com base na distância a um conjunto dos pontos chamados ``sementes'' ou ``sítios''. Neste diagrama, cada região representa a área que está mais próxima de uma semente específica em comparação com qualquer outra semente em conjunto, como ilustrado na Figura~\ref{fig:voronoi}. 
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=0.7\linewidth]{regiao-voronoi.jpg}
+	\label{fig:voronoi}
+\end{figure}
 
 \subsection*{Subalgoritmo de distância de Ericson}
 
@@ -206,15 +227,18 @@ Para cada dimensão do simplex Q, o subalgoritmo de Ericson calcula se a origem 
 
 Caso 0-simplex, contém apenas o ponto $A$. A direção de busca é definida como $\vec{d} = -A$. Caso o algoritmo termine nesse passo, o ponto mais próximo da origem é o próprio $A$.
 
-Caso 1-simplex (\textit{ClosestPointOnEdgeToPoint()}) estamos trabalhando com um segmento de reta $\overline{AB}$. Isso divide o espaço em três regiões de Voronoi como ilustrado pela Figura:  região de vértice $A$, região de vértice $B$ e região da aresta $\overline{AB}$. Se a origem estiver na região de $A$, remove-se o ponto $B$. Se estiver na região de $B$, remove-se o ponto $A$. Caso contrário, a origem encontra-se na região da aresta, mantendo-se ambos os pontos. O ponto de suporte é buscado na direção normal ao segmento que aponta para a origem. 
+Caso 1-simplex (\textit{ClosestPointOnEdgeToPoint()}) estamos trabalhando com um segmento de reta $\overline{AB}$. Isso divide o espaço em três regiões de Voronoi como ilustrado pela Figura~\ref{fig:gjk-ericson-voronoi-1simplex}: região de vértice $A$, região de vértice $B$ e região da aresta $\overline{AB}$. Se a origem estiver na região de $A$, remove-se o ponto $B$. Se estiver na região de $B$, remove-se o ponto $A$. Caso contrário, a origem encontra-se na região da aresta, mantendo-se ambos os pontos. O ponto de suporte é buscado na direção normal ao segmento que aponta para a origem. 
+
+\begin{figure}[htb]
+	\centering
+	\includesvg[width=0.7\linewidth]{gjk-ericson-voronoi-1simplex.svg}
+	\caption{Regiões de Voronoi para o caso 1-simplex.}
+	\label{fig:gjk-ericson-voronoi-1simplex}
+\end{figure}
 
 Porém, a origem sempre estará contida na região de Voronoi do segmento $\overline{AB}$, pois, por construção os pontos de suporte A e B estão no limite do CSO. Dessa forma, a próxima direção de busca apontando para origem é perpendicular ao segmento $\overline{AB}$.
 
-Caso a iteração termine nesse passo, o ponto mais próximo da origem é obtido projetando a origem sobre o segmento. Definindo:
-\begin{equation*}
-	\overline{AB} = B - A.
-\end{equation*}
-O parâmetro de projeção da origem sobre o segmento é dado por:
+Caso a iteração termine nesse passo, o ponto mais próximo da origem é obtido projetando a origem sobre o segmento. O parâmetro de projeção da origem sobre o segmento é dado por:
 \begin{equation*}
 	t = \frac{-A \cdot \overline{AB}}{\overline{AB} \cdot \overline{AB}},
 \end{equation*}
@@ -228,27 +252,27 @@ e ponto mais próximo é
 	\end{cases}.
 \end{equation*}
 
-Caso 2-simplex (\textit{ClosestPointOnTriangleToPoint()}), temos um triangulo que divide o espaço em 7 regiões de Voronoi: regiões de vértice $V_A$, $V_B$, $V_C$, regiões de aresta $\overline{AB}, \overline{BC}, \overline{CA}$ e o interior $\triangle ABC$, como ilustrado na Figura~\ref{fig:gjk-ericson-voronoi}. Como estamos trabalhando em 2D, se a origem está contida no triângulo, então podemos afirmar que a distância entre A e B é zero. Caso contrário, dependendo de qual região ele cai, manteremos essa parte da figura e iteraremos novamente. Em 3D seria necessário considerar a posição relativa da origem em relação ao plano do triângulo (para cima ou para baixo).
+Caso 2-simplex (\textit{ClosestPointOnTriangleToPoint()}), temos um triangulo que divide o espaço em 7 regiões de Voronoi: regiões de vértice $V_A$, $V_B$, $V_C$, regiões de aresta $\overline{AB}, \overline{BC}, \overline{CA}$ e o interior $\triangle ABC$, como ilustrado na Figura~\ref{fig:gjk-ericson-voronoi-2simplex}. Como estamos trabalhando em 2D, se a origem está contida no triângulo, então podemos afirmar que a distância entre A e B é zero. Caso contrário, dependendo de qual região ele cai, manteremos essa parte da figura e iteraremos novamente. Em 3D seria necessário considerar a posição relativa da origem em relação ao plano do triângulo (para cima ou para baixo).
 
 \begin{figure}[htb]
 	\centering
-	\includesvg[width=\linewidth]{gjk-ericson-voronoi.svg}
-	\caption{Regiões de Voronoi para o caso 3-simplex.}
-	\label{fig:gjk-ericson-voronoi}
+	\includesvg[width=\linewidth]{gjk-ericson-voronoi-2simplex.svg}
+	\caption{Regiões de Voronoi para o caso 2-simplex.}
+	\label{fig:gjk-ericson-voronoi-2simplex}
 \end{figure}
 
 Os testes para dois tipos de região de Voronoi, região de Vértice ou região de Aresta seguem como:
 \begin{enumerate}
 	\item A origem está contida numa região de Vértice. Equação de exemplo para $V_A$:
 		\begin{itemize}
-			\item $AX \cdot AB \le 0$
-			\item $AX \cdot AC \le 0$
+			\item $AO \cdot AB \le 0$
+			\item $AO \cdot AC \le 0$
 		\end{itemize}
 	\item A origem está contida numa região de Aresta. Equação de exemplo para $E_{AB}$:
 		\begin{itemize}
-			\item $(BC \times BA) \times BA \cdot BX \ge 0$
-			\item $AX \cdot AB \ge 0$
-			\item $BX \cdot BA \ge 0$
+			\item $(BC \times BA) \times BA \cdot BO \ge 0$
+			\item $AO \cdot AB \ge 0$
+			\item $BO \cdot BA \ge 0$
 		\end{itemize}
 \end{enumerate}
 

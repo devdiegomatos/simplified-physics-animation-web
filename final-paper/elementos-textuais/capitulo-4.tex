@@ -74,7 +74,7 @@ Isso garante que a geometria original é preservada e que o ponto $\vec{p}$, def
 
 \section{Algoritmo de Expansão de Politopos (EPA)}
 
-Enquanto o SAT fornece naturalmente o MTV, o algoritmo BGJK apenas informa se há interseção (retornando um \textit{Simplex} interno à diferença de Minkowski). Para obter a profundidade e a normal da colisão necessárias para a resposta física, utiliza-se o Algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}).
+Enquanto o SAT fornece naturalmente o MTV, o algoritmo BGJK apenas informa se há interseção (retornando um \textit{simplex} interno à diferença de Minkowski). Para obter a profundidade e a normal da colisão necessárias para a resposta física, utiliza-se o Algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}).
 
 O Algoritmo~\ref{alg:epa} expande o \textit{simplex} final do BGJK iterativamente até encontrar a fronteira da diferença de Minkowski mais próxima da origem. A distância entre o ponto mais próximo com a origem é a profundidade de penetração. Além disso, o vetor normal para o ponto mais próximo é a direção de separação (ponto de contato). A solução ingênua é usar a normal da face mais próxima da origem, porém um \textit{simplex} não precisa conter nenhuma das faces do polígono original, o que pode levar ao cálculo de uma normal incorreta.
 \begin{algorithm}[htb]
