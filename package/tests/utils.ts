@@ -16,6 +16,7 @@ export function generateBodies(
     for (let i = 0; i < count; i++) {
         const x = Math.random() * worldDimensions;
         const y = Math.random() * worldDimensions;
+        if (i == 0) console.log(x,y)
 
         const type = Math.random();
         const isStatic = Math.random() < 0.2 ? true : false;
@@ -43,11 +44,11 @@ export function exportCSV(metrics: Metrics, name: string) {
     }
 
     const header =
-        'particles,constraints,collisions_test,collisions_count,broadphase_time,narrowphase_time\n';
+        'particles,constraints,collisions_test,true_collisions,broadphase_time,narrowphase_time\n';
     let rows = '';
     const rowsCount = metrics.particlesCount.length;
     for (let i = 0; i < rowsCount; i++) {
-        rows += `${metrics.particlesCount[i]},${metrics.constraintsCount[i]},${metrics.collisionsTest[i]},${metrics.collisionsCount[i]},${metrics.broadphaseTime[i]},${metrics.narrowphaseTime[i]}\n`;
+        rows += `${metrics.particlesCount[i]},${metrics.constraintsCount[i]},${metrics.collisionsTest[i]},${metrics.trueCollisions[i]},${metrics.broadphaseTime[i]},${metrics.narrowphaseTime[i]}\n`;
     }
 
     writeFileSync(`${dir}/${name}.csv`, header + rows);

@@ -3,7 +3,7 @@ import { vec3 } from 'gl-matrix';
 import type PolygonBody from '../../bodies/PolygonBody';
 import { support, tripleProduct } from './utils';
 
-const TOLERANCE = 1e-6;
+const EPSILON = 1e-6;
 
 export default function gjk(A: PolygonBody, B: PolygonBody): vec3[] | false {
     const simplex: vec3[] = [];
@@ -13,6 +13,9 @@ export default function gjk(A: PolygonBody, B: PolygonBody): vec3[] | false {
 
     // get the first Minkowski Difference point
     let S = support(A, B, d)
+    if (vec3.length(S) <= EPSILON) {
+        return false;
+    }
     simplex.push(S);
 
     // negate d for the next point
@@ -23,7 +26,7 @@ export default function gjk(A: PolygonBody, B: PolygonBody): vec3[] | false {
         S = support(A, B, d);
 
         // make sure that the last point we added actually passed the origin
-        if (vec3.dot(S, d) <= TOLERANCE) {
+        if (vec3.dot(S, d) <= EPSILON) {
             return false;
         }
 
@@ -37,7 +40,7 @@ export default function gjk(A: PolygonBody, B: PolygonBody): vec3[] | false {
         }
     }
 
-    return false;
+    return simplex;
 }
 
 function containsOrigin(simplex: vec3[], d: vec3): boolean {

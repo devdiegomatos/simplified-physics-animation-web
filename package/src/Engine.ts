@@ -26,14 +26,12 @@ export interface Config {
 }
 
 export interface Metrics {
-    // objectsCount: number[];
     particlesCount: number[];
     constraintsCount: number[];
     collisionsTest: number[];
-    collisionsCount: number[];
+    trueCollisions: number[];
     broadphaseTime: number[];
     narrowphaseTime: number[];
-    // frametime: number[];
 }
 
 export default class Engine {
@@ -44,14 +42,12 @@ export default class Engine {
     public collidersInfo: ColliderInfo[] = [];
 
     public metrics: Metrics = {
-        // objectsCount: [],
         particlesCount: [],
         constraintsCount: [],
         collisionsTest: [],
-        collisionsCount: [],
+        trueCollisions: [],
         broadphaseTime: [],
         narrowphaseTime: [],
-        // frametime: [],
     };
     public isPaused: boolean = false;
     public pauseOnCollision: boolean = false;
@@ -73,16 +69,14 @@ export default class Engine {
             return;
         }
 
-        // this.metrics.frametime.push(dt);
         this.metrics.collisionsTest.push(0);
+        this.metrics.trueCollisions.push(0);
         this.contactPairs.length = 0;
         this.collidersInfo.length = 0;
 
         if (this.config.BroadPhase == BroadPhaseMode.GridSpatialPartition) {
             this.spatialHashGrid?.clear();
         }
-
-        // this.metrics.objectsCount.push(this.bodies.length);
 
         let sumParticles = 0,
             sumConstraints = 0;
@@ -255,13 +249,10 @@ export default class Engine {
 
             // The direction of the separation plane goes from A to B
             // So the separation required for A is in the oppositive direction
-            this.metrics.collisionsTest[
-                this.metrics.collisionsTest.length - 1
-            ]++;
             const hit = sat(convexHullA, convexHullB);
             if (hit) {
-                this.metrics.collisionsCount[
-                    this.metrics.collisionsCount.length - 1
+                this.metrics.trueCollisions[
+                    this.metrics.trueCollisions.length - 1
                 ]++;
 
                 const colliderA = new ColliderInfo(
@@ -291,8 +282,8 @@ export default class Engine {
             // So the separation required for A is in the oppositive direction
             const hit = gjk(convexHullA, convexHullB);
             if (hit) {
-                this.metrics.collisionsCount[
-                    this.metrics.collisionsCount.length - 1
+                this.metrics.trueCollisions[
+                    this.metrics.trueCollisions.length - 1
                 ]++;
 
                 const mvp = epa(convexHullA, convexHullB, hit);
