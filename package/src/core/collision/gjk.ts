@@ -104,17 +104,22 @@ function lineCase(simplex: vec3[], d: vec3): boolean {
     const ao = vec3.negate(vec3.create(), a);
     // compute AB
     const ab = vec3.subtract(vec3.create(), b, a);
+    const bo = vec3.negate(vec3.create(), b);
+    const ba = vec3.subtract(vec3.create(), a, b);
+
+    if (vec3.dot(ab, ao) <= 0) {
+        vec3.copy(d, ao);
+        return false;
+    } else if (vec3.dot(ba, bo) <= 0) {
+        vec3.copy(d, bo);
+        return false;
+    }
+
     // get the perp to AB in the direction of the origin
     const abPerp = tripleProduct(ab, ao, ab);
-    if (vec3.length(abPerp) <= 1e-10) {
-        // Degenerate lineCase direction, if ao is almost collinear with ab
-        // fall back to ao directly.
-        vec3.copy(d, ao);
-    } else {
-        // set the direction to abPerp
-        vec3.copy(d, abPerp);
-        vec3.normalize(d, d);
-    }
+    // set the direction to abPerp
+    vec3.copy(d, abPerp);
+    vec3.normalize(d, d);
 
     return false;
 }
