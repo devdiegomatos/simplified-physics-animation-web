@@ -68,9 +68,9 @@ onde $\epsilon$ é um valor numérico para tratar erros de operação flutuante 
 
 O algoritmo de Gilbert-Johnson-Keerthi (GJK) é um algoritmo clássico para calcular distância euclidiana entre dois politopos convexos, um problema fundamental em áreas como computação gráfica, simulação física, robótica, planejamento de trajetórias e sistemas de detecção de colisão. 
 
-Originalmente o algoritmo permite calcular a distância mínima entre politopos convexos em $\mathbb{R}^m$, definidos pelo número de vértices em sua fronteira, com complexidade linear no número de vértices dos objetos. Para calcular a distância é usado o subalgoritmo de Johnson, que resolve um sistema de equações lineares para combinação de vértices, faces e arestas. O algoritmo de GJK é amplamente utilizado em motores físicos devido à sua eficiência e robustez, especialmente em ambientes tridimensionais~\cite{gjk}.
+Originalmente o algoritmo permite calcular a distância mínima entre politopos convexos em $\mathbb{R}^m$, definidos pelo número de vértices em sua fronteira, com complexidade linear no número de vértices dos objetos. O algoritmo de GJK é amplamente utilizado em motores físicos devido à sua eficiência e robustez, especialmente em ambientes tridimensionais~\cite{gjk}.
 
-Com o passar dos anos, o subalgoritmo de distância de Johnson foi substituído por outros mais sofisticados como, por exemplo, o subalgoritmo de Ericson apresentado na SIGGRAPH 2004~\cite{ericson2004gjk}. Este subalgoritmo se baseia numa abordagem geométrica ao invés de algébrica, com otimização usando regiões. Neste trabalho, detalharemos a versão aprimorada do GJK proposta por \citeonline{gjk_enhanced}, que é capaz de tratar qualquer objeto convexo, e o subalgoritmo de Ericson. 
+Neste trabalho, detalharemos uma versão aprimorada do GJK proposta por \citeonline{gjk_enhanced}, que é capaz de tratar qualquer objeto convexo. 
 
 \subsection*{Distância Euclidiana entre Conjuntos Convexos}
 
@@ -101,9 +101,9 @@ O algoritmo de GJK fundamenta-se na soma de Minkowski entre dois conjuntos conve
 $$
 A + B = \{ \vec{x} + \vec{y} \mid \vec{x} \in A,\ \vec{y} \in B \},
 $$
-onde $ \vec{x} $ e $ \vec{y} $ representam vetores posição associados a pontos pertencentes aos conjuntos $A$ e $B$, respectivamente.
+onde $ \vec{x} $ e $ \vec{y} $ representam \textit{vetores posição} associados a pontos pertencentes aos conjuntos $A$ e $B$, respectivamente. Observe que é uma prática comum, principalmente nos textos sobre detecção de colisão, representar um \textit{ponto} $P$ por meio do \textit{vetor posição} $\vec p = P - O$, onde $O$ é a origem do sistema de coordenadas. 
 
-Do ponto de vista geométrico, a soma de Minkowski pode ser interpretada como o conjunto de todos os pontos obtidos ao transladar o objeto B por cada vetor posição pertencente a A, mantendo sua forma e orientação, ou seja, faz-se uma cópia do objeto B centrado em cada ponto de A, como ilustrado na Figura~\ref{fig:soma-minkowski}.
+Do ponto de vista geométrico, a soma de Minkowski pode ser interpretada como o conjunto de todos os pontos obtidos ao transladar o objeto $B$ por cada vetor posição pertencente a $A$, mantendo sua forma e orientação, ou seja, faz-se uma cópia do objeto $B$ centrado em cada ponto de $A$, como ilustrado na Figura~\ref{fig:soma-minkowski}.
 
 \begin{figure}[htb]
 	\centering
@@ -111,7 +111,7 @@ Do ponto de vista geométrico, a soma de Minkowski pode ser interpretada como o 
 	\caption{Soma de Minkowski, entre os conjuntos A e B.}
 	\label{fig:soma-minkowski}
 \end{figure}
-Uma propriedade muito útil da soma de Minkowski é o fato de que a soma de dois objetos convexos é um objeto convexo. Para um objeto A, usamos a notação $-A$ para denotar a reflexão de A sobre a origem O. A diferença de Minkowski $A-B$ pode ser obtida calculando a soma de Minkowski de A e $-B$
+Uma propriedade muito útil da soma de Minkowski é o fato de que a soma de dois objetos convexos é um objeto convexo. Para um objeto A, usamos a notação $-A$ para denotar a reflexão de A sobre a origem O. A diferença de Minkowski $A-B$ pode ser obtida calculando a soma de Minkowski de $A$ e $-B$
 $$
 	A - B = A + (-B) = \{\vec{x} - \vec{y} \mid \vec{x} \in A, \vec{y} \in B \}.
 $$
@@ -125,27 +125,22 @@ Isso se deve ao fato de que se existe um ponto $p_A \subset A$ igual a $p_B \sub
 
 \subsection*{Função suporte e ponto de suporte}
 
-Um ponto interessante do algoritmo é que não é necessário calcular explicitamente o CSO, apenas uma amostra do CSO, sob demanda, usando um mapeamento de suporte. Uma função de suporte é definida tal que: seja A um conjunto qualquer, o suporte de A na direção de $\hat d$ retorna o ponto que pertence a superfície de A mais distante da origem na direção $\hat d$, esse ponto é chamado de ponto de suporte. \citeonline{gjk_enhanced} mostraram que é possível representar qualquer objeto convexo com a função suporte correta, como por exemplo:
+Um ponto interessante do algoritmo é que não é necessário calcular explicitamente o CSO, apenas uma amostra do CSO, sob demanda, usando um mapeamento de suporte. Uma função de suporte é definida tal que: seja A um conjunto qualquer, o suporte de A na direção de $\hat d$ retorna o ponto que pertence a superfície de A mais distante da origem na direção $\hat d$, esse ponto é chamado de ponto de suporte. \citeonline{gjk_enhanced} mostraram que é possível representar qualquer objeto convexo com a função suporte correta. Por exemplo, para um um politopo $A$, podemos escrever a seguinte função de suporte
 % \begin{align*}
 % 	\text{Politopo}&: S_A (\vec{d}) = \arg\max_{a \in A} (\hat d \cdot a), \\
 % 	\text{Esfera com raio R}&: S_A (\vec{d}) = O + R \vec{d}
 % \end{align*}
-
-\begin{align*}
-\text{Politopo:}&
-S_A(\hat d)
-=
-\arg\max_{a \in A} (\hat d \cdot a),
-\\[6pt]
-\text{Esfera de raio } r \text{ centrada em O }:&
-S_A(\hat d)
-=
-O + r \hat d
-\end{align*}
+\begin{equation}\label{eq:suporte}
+S_A(\hat d) = \arg\max_{\vec a \in A} (\hat d \cdot \vec a).
+\end{equation}
+% De forma semelhante, para uma esfera $E$ com centro em $\vec o$ e raio $r$, a função de suporte é:
+% \[
+% S_E(\hat d) = \vec o + r \hat d.
+% \]
 
 Uma propriedade fundamental é que funções de suporte permitem realizar operações entre conjuntos convexos
 \begin{align*}
-	S_{A+B} (\hat d) &= S_A (\hat d) + S_B (\hat d) \\
+	S_{A+B} (\hat d) &= S_A (\hat d) + S_B (\hat d), \\
 	S_{-A} (\hat d) &= -S_A (-\hat d).
 \end{align*}
 Dessa forma, seja D a diferença de Minkowski de dois objetos convexos A e B, o suporte de D na direção $\hat d$ é a diferença dos suportes de A e B: $S_{A-B} (\hat d) = S_A (\hat d) - S_B (-\hat d)$, como ilustrado pela Figura~\ref{fig:support_function}. 
@@ -156,9 +151,9 @@ Dessa forma, seja D a diferença de Minkowski de dois objetos convexos A e B, o 
 	\label{fig:support_function}
 \end{figure}
 
-A busca pelo ponto mais próximo da origem dentro do CSO é sustentado pelo teorema de Carathéodory~\cite{rockafellar1970convex}. O teorema afirma que se um ponto $x$ está no interior do fecho convexo de um conjunto $P$ em $\mathbb{R}^m$ então $x$ está no interior de um simplex com vértices em $P$.
+A busca pelo ponto mais próximo da origem dentro do CSO é sustentado pelo teorema de Carathéodory~\cite{rockafellar1970convex}. O teorema afirma que se um ponto $\vec x$ está no interior do fecho convexo de um conjunto $P$ em $\mathbb{R}^m$ então $\vec x$ está no interior de um simplex com vértices em $P$.
 
-Um simplex (plural simplices) é definido como um politopo de $k+1$ vértices em um espaço de dimensão $k$. Dessa forma um ponto é 0-simplex, um segmento de reta é 1-simplex, um triângulo é 2-simplex, um tetraedro é 3-simplex, como na Figura~\ref{fig:simplex}.
+Um simplex (plural: \textit{simplices}) é definido como um politopo de $k+1$ vértices em um espaço de dimensão $k$. Dessa forma um ponto é 0-simplex, um segmento de reta é 1-simplex, um triângulo é 2-simplex, um tetraedro é 3-simplex, como na Figura~\ref{fig:simplex}.
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{simplex}
@@ -166,19 +161,19 @@ Um simplex (plural simplices) é definido como um politopo de $k+1$ vértices em
 	\label{fig:simplex}
 \end{figure}
 
-O teorema de Carathéodory em 2 dimensões afirma que podemos construir um triângulo usando pontos em $P$ que envolve qualquer ponto no interior do fecho convexo de $P$. Por exemplo, seja $P = {(0,0), (0,1), (1,0), (1,1)}$. O fecho convexo deste conjunto é um quadrado. Seja $x = (1/4, 1/4)$ no interior do fecho convexo de $P$. Podemos então construir um triângulo ${(0,0),(0,1),(1,0)} = P'$ que envolve x, como ilustrado na Figura~\ref{fig:caratheodory}.~\cite{caratheodory_wikipedia}
+O teorema de Carathéodory em 2 dimensões afirma que podemos construir um triângulo usando pontos em $P$ que envolve qualquer ponto no interior do fecho convexo de $P$. Por exemplo, seja $P = {(0,0), (0,1), (1,0), (1,1)}$. O fecho convexo deste conjunto é um quadrado. Seja $\vec x = (1/4, 1/4)$ no interior do fecho convexo de $P$. Podemos então construir um triângulo ${(0,0),(0,1),(1,0)} = P'$ que envolve $\vec x$, como ilustrado na Figura~\ref{fig:caratheodory}.~\cite{caratheodory_wikipedia}
 \begin{figure}[htb]
 	\centering
 	\includegraphics[width=0.7\linewidth]{Caratheodorys_theorem_example.png}
-	\caption{Ilustração do teorema de Carathéodory. O ponto x está no interior do fecho convexo de $P$, e também está no interior do fecho convexo de $P'$.}
+	\caption{Ilustração do teorema de Carathéodory. O ponto $\vec x$ está no interior do fecho convexo de $P$, e também está no interior do fecho convexo de $P'$.}
 	\label{fig:caratheodory}
 \end{figure}
 
 \subsection*{O algoritmo}
 
-O algoritmo GJK constrói iterativamente simplices $Q_1, Q_2, Q_3, ..., Q_n$ dentro do CSO, até chegar a um determinado simplex $Q_j = Q_{j+1}$, determinando que não houve colisão. Alternativamente o ponto $\vec{p}$ mais próximo da origem, pertencente a este simplex, constitui uma aproximação sucessivamente melhor da distância mínima entre os objetos, caso esteja suficientemente próximo de 0, então houve colisão.
+O algoritmo GJK constrói iterativamente simplices $Q_1, Q_2, Q_3, ..., Q_n$ dentro do CSO, até chegar a um determinado simplex $Q_j = Q_{j+1}$, determinando que não houve colisão. Alternativamente o ponto $\vec{p}$ mais próximo da origem, pertencente a este simplex, constitui uma aproximação sucessivamente melhor da distância mínima entre os objetos. Caso esta seja suficientemente próximo de 0, então houve colisão.
 
-O algoritmo tenta aproximar o simplex da origem procurando um ponto de suporte $\vec{s}$ usando a direção $\hat d$, que aponta de $P$ para a origem. Dessa forma:
+O algoritmo tenta encontrar o simplex mais próximo da origem procurando um ponto de suporte $\vec{s}$ usando a direção $\hat d$, que aponta de $P$ para a origem. Dessa forma:
 \begin{itemize}
 	\item Se $\vec{s} \cdot \hat d > 0$, então existe um ponto do CSO na direção da origem.
 	\item Se $\vec{s} \cdot \hat d = 0$, então o ponto de suporte é ortogonal à direção de busca, indicando que a origem está tangente ao CSO.
@@ -202,9 +197,7 @@ O algoritmo tenta aproximar o simplex da origem procurando um ponto de suporte $
 			\tcp{A e B não se intersectam}
 			\Return $\|\vec{p}\|$ 
 		}
-
-		$Q \leftarrow Q \cup \{\vec{s}\}$ \\
-		$Q, \hat d, \vec{p} \leftarrow \text{NearestSimplex}(Q)$ \\
+		$Q, \hat d, \vec{p} \leftarrow \text{NearestSimplex}(Q \cup \{\vec{s}\})$ \\
 	}
 
 	\Return $\|\vec{p}\|$ \tcp{A e B se intersectam}
@@ -213,13 +206,19 @@ O algoritmo tenta aproximar o simplex da origem procurando um ponto de suporte $
 
 O Algoritmo~\ref{alg:gjk} inicia com a construção de um simplex Q contendo um ponto de suporte $\vec s$ do CSO em uma direção inicial arbitrária (comumente escolhida como o vetor que liga o centro geométrico de A ao centro geométrico de B). Em seguida, define-se a nova direção $\hat d$ como o vetor oposto a $\vec s$, orientando a busca em direção à origem.
 
-O laço principal consiste em três etapas fundamentais. Primeiramente, calcula-se um novo ponto de suporte na direção atual $\hat d$. Caso adicionar o novo ponto de suporte não melhore a aproximação para origem, conclui-se que não há avanço em direção à origem. Introduz-se um termo de tolerância $\epsilon$ a fim de evitar laços infinitos e limitar o erro entre a distância de separação calculada e a distância real. Como a cada laço o ponto de suporte consulta um novo vértice, e há um número limitado de vértices a serem consumidos, então o algoritmo é garantido a terminar.
+O laço principal consiste em três etapas fundamentais. Primeiramente, calcula-se um novo ponto de suporte na direção atual $\hat d$. Caso adicionar o novo ponto de suporte não melhore a aproximação para origem, conclui-se que não há avanço em direção à origem. Introduz-se um termo de tolerância $\epsilon$ a fim de evitar laços infinitos e limitar o erro entre a distância de separação calculada e a distância real. Como a cada laço o ponto de suporte consulta um novo vértice, e há um número limitado de vértices a serem consumidos, então o algoritmo garantidamente termina.
 
-Caso contrário, o ponto $\vec s$ é adicionado ao simplex Q. Em seguida, aplica-se o procedimento $\text{NearestSimplex}(Q)$, que determina o subconjunto convexo mínimo de Q cujo fecho convexo contém o ponto mais próximo da origem, além de atualizar a direção de busca $\hat d$ para apontar de $\vec{p}$ à origem e de atualizar o ponto mais próximo $\vec{p}$. A complexidade assintótica de \textit{NearestSimplex} é constante e baixa, igual a cardinalidade de Q, que é no máximo 4 em 3D e 3 em 2D.
+Caso contrário, o ponto $\vec s$ é adicionado ao simplex $Q$. Em seguida, aplica-se o procedimento $\text{NearestSimplex}(Q)$, que determina o subconjunto convexo mínimo de Q cujo fecho convexo contém o ponto mais próximo da origem, além de atualizar a direção de busca $\hat d$ para apontar de $\vec{p}$ à origem e de atualizar o ponto mais próximo $\vec{p}$. A complexidade assintótica de \textit{NearestSimplex} é constante e baixa, igual a cardinalidade de $Q$, que é no máximo 4 em 3D e 3 em 2D.
 
 \subsection*{Subalgoritmo de distância de Ericson}
 
-A formulação apresentada por \citeonline{ericson2004gjk} substitui a abordagem algébrica original de Johnson por uma formulação geométrica, simplificada, baseada em testes utilizando regiões. Apesar da diferença na formulação, o algoritmo permanece matematicamente equivalente ao método original de Johnson \cite{linahan2015geometricgjk}. O procedimento inicia com um simplex inicial e o refina iterativamente, adicionando novos pontos obtidos pela função de suporte na direção que aponta para a origem. A cada iteração, determina-se qual subconjunto do simplex contém o ponto mais próximo da origem utilizando a decomposição do espaço em regiões.
+No Algoritmo~\ref{alg:gjk}, usa-se a função NearestSimplex para calcular o simplex mais próximo da origem dado um conjunto de pontos. Na descrição original, esta função era implementada pelo subalgoritmo de Johnson, que resolve um sistema de equações lineares para combinação de vértices, faces e arestas. 
+Com o passar dos anos, esse subalgoritmo foi substituído por outros mais sofisticados como, por exemplo, o subalgoritmo de Ericson apresentado na SIGGRAPH 2004~\cite{ericson2004gjk}, e que se baseia numa abordagem geométrica ao invés de algébrica, com otimização usando regiões. 
+
+A função NearestSimplex implementada conforme o subalgoritmo de Ericson recebe como argumento um conjunto de pontos que pode ter cardinalidade 1, 2 ou 3 quando aplicado a problemas em 2D. Ela retorna um simplex representado por um conjunto $Q$ com 1, 2 ou 3 pontos, um novo vetor de direção $\vec d$ e o ponto $\vec p$ do simplex mais próximo da origem.
+
+Em particular, veremos que, sempre que NearestSimplex retorna um conjunto com 3 pontos, o algoritmo GJK termina, já que este triângulo ou contém a origem, ou garantidamente não há interseção entre $A$ e $B$.
+
 
 Para cada dimensão do simplex Q é feito uma análise, neste trabalho iremos trabalhar apenas com objetos em 2D, por isso trataremos apenas dos casos 1-simplex e 2-simplex. Para descrever o subalgoritmo de Ericson, denotamos a origem por $O$ e os vértices do simplex por $R$, $S$ e $T$. Associamos a cada ponto seu vetor posição em relação à origem:
 $$
