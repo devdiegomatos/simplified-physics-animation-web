@@ -95,8 +95,7 @@ import SceneThreaded from '@/scenes/SceneThreaded';
 // Component States
 let hasStarted = false,
     threaded = false;
-let totalEntities = 100,
-    currEntities = 0;
+let totalEntities = 100;
 let broadPhase: BroadPhaseMode = BroadPhaseMode.Naive;
 let collisionDetection: CollisionDetectionMode = CollisionDetectionMode.Sat;
 const fps = ref(0);
