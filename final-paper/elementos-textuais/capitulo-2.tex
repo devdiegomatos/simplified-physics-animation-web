@@ -15,11 +15,11 @@ O objetivo central da animação baseada em física é resolver numericamente as
 
 \begin{quote}
 	\textbf{Segunda lei de Newton (Princípio Fundamental da Dinâmica):}
-	Para um corpo de massa constante $m$ submetido a uma força $\vec{F}$, o movimento é descrito por:
+	Para um corpo de massa constante $m$ submetido a uma força $\vec F$, o movimento é descrito por:
 	$$
-		\vec{F} = m\vec{a} = m\frac{d\vec{v}}{dt} = m\frac{d^2\vec{x}}{dt^2},
+		\vec F = m\vec a = m\frac{d\vec v}{dt} = m\frac{d^2\vec x}{dt^2},
 	$$
-    onde $\vec{x}$ é a posição do corpo, $\vec{v}$ é sua velocidade e $t$ é o tempo.
+    onde $\vec x$ é a posição do corpo, $\vec v$ é sua velocidade e $t$ é o tempo.
 \end{quote}
 
 \begin{quote}
@@ -43,8 +43,8 @@ O estado de uma particula no instante $t$ é dado por:
 $$
 X(t) =
 \begin{pmatrix}
-	\vec{x}(t) \\
-	\vec{v}(t)
+	\vec x(t) \\
+	\vec v(t)
 \end{pmatrix}.
 $$
 Seja $F(t)$ a soma das forças que atuam sobre a partícula e $m$ sua massa. O movimento pode ser descrito por:
@@ -53,12 +53,12 @@ $$
 	=
 	\frac{d}{dt}
 	\begin{pmatrix}
-		\vec{x}(t) \\
-		\vec{v}(t)
+		\vec x(t) \\
+		\vec v(t)
 	\end{pmatrix}
 	=
 	\begin{pmatrix}
-		\vec{v}(t) \\
+		\vec v(t) \\
 		\dfrac{F(t)}{m}
 	\end{pmatrix}.
 $$
@@ -70,9 +70,9 @@ Um corpo rígido é um objeto cuja forma e volume permanecem invariáveis durant
 
 A representação matemática de um corpo rígido é dada por:
 \begin{itemize}
-	\item \textbf{Posição} $\vec{p}$: coordenadas do centro de massa;
+	\item \textbf{Posição} $\vec p$: coordenadas do centro de massa;
 	\item \textbf{Orientação} $R$: matriz de rotação ou quatérnio;
-	\item \textbf{Velocidade linear} $\vec{v}$: variação temporal da posição;
+	\item \textbf{Velocidade linear} $\vec v$: variação temporal da posição;
 	\item \textbf{Velocidade angular} $\vec{\omega}$: variação temporal da orientação;
 	\item \textbf{Massa} $m$ e \textbf{tensor de inércia} $I$: medidas de resistência à aceleração.
 \end{itemize}
@@ -89,13 +89,13 @@ A abordagem mais comum para simular deformações em jogos e aplicações intera
 
 A força interna exercida por uma mola entre duas partículas $i$ e $j$ é descrita pela Lei de Hooke:
 $$
-	\vec{F}_{elastica} = -k_s (|\vec{x}_i - \vec{x}_j| - L_0) \frac{\vec{x}_i - \vec{x}_j}{|\vec{x}_i - \vec{x}_j|},
+	\vec F_{elastica} = -k_s (|\vec x_i - \vec x_j| - L_0) \frac{\vec x_i - \vec x_j}{|\vec x_i - \vec x_j|},
 $$
-onde $k_s$ é a constante de rigidez, $L_0$ é o comprimento de repouso da mola e $\vec{x}$ são as posições das partículas. Para garantir a estabilidade numérica e simular a perda de energia, adiciona-se frequentemente um termo de amortecimento:
+onde $k_s$ é a constante de rigidez, $L_0$ é o comprimento de repouso da mola e $\vec x$ são as posições das partículas. Para garantir a estabilidade numérica e simular a perda de energia, adiciona-se frequentemente um termo de amortecimento:
 $$
-	\vec{F}_{amortecimento} = -k_d (\vec{v}_i - \vec{v}_j) \frac{\vec{x}_i - \vec{x}_j}{|\vec{x}_i - \vec{x}_j|},
+	\vec F_{amortecimento} = -k_d (\vec v_i - \vec v_j) \frac{\vec x_i - \vec x_j}{|\vec x_i - \vec x_j|},
 $$
-onde $k_d$ é o coeficiente de amortecimento e $\vec{v}$ são as velocidades.
+onde $k_d$ é o coeficiente de amortecimento e $\vec v$ são as velocidades.
 
 \subsection*{Estruturação Topológica para Tecidos}
 
@@ -114,8 +114,8 @@ A simulação de movimento depende da solução numérica das equações diferen
 
 O método de Euler é o mais simples e intuitivo. Ele atualiza a posição e a velocidade de acordo com a aceleração atual:
 \begin{align*}
-	\vec{v}_{t+\Delta t} &= \vec{v}_t + \vec{a}_t \Delta t, \\
-	\vec{x}_{t+\Delta t} &= \vec{x}_t + \vec{v}_t \Delta t.
+	\vec v_{t+\Delta t} &= \vec v_t + \vec a_t \Delta t, \\
+	\vec x_{t+\Delta t} &= \vec x_t + \vec v_t \Delta t.
 \end{align*}
 Apesar de sua simplicidade, o método de Euler tende a ser numericamente instável, especialmente em sistemas oscilatórios (como molas), pois o erro de integração cresce rapidamente ao longo do tempo.
 
@@ -123,8 +123,8 @@ Apesar de sua simplicidade, o método de Euler tende a ser numericamente instáv
 
 Uma variação estável do método de Euler consiste em atualizar primeiro a velocidade e depois a posição, utilizando a nova velocidade no cálculo:
 \begin{align*}
-	\vec{v}_{t+\Delta t} &= \vec{v}_t + \vec{a}_t \Delta t, \\
-	\vec{x}_{t+\Delta t} &= \vec{x}_t + \vec{v}_{t+\Delta t} \Delta t.
+	\vec v_{t+\Delta t} &= \vec v_t + \vec a_t \Delta t, \\
+	\vec x_{t+\Delta t} &= \vec x_t + \vec v_{t+\Delta t} \Delta t.
 \end{align*}
 Essa pequena modificação melhora a conservação de energia e reduz a instabilidade numérica, sendo amplamente adotado em motores como o Box2D.
 
@@ -132,12 +132,12 @@ Essa pequena modificação melhora a conservação de energia e reduz a instabil
 
 Verlet é um método de segunda ordem que não armazena explicitamente a velocidade. A nova posição é calculada com base na posição atual, na posição anterior e na aceleração:
 $$
-	\vec{x}_{t+\Delta t} = 2\vec{x}_t - \vec{x}_{t-\Delta t} + \vec{a}_t \Delta t^2.
+	\vec x_{t+\Delta t} = 2\vec x_t - \vec x_{t-\Delta t} + \vec a_t \Delta t^2.
 $$
 
 A velocidade, quando necessária para cálculos de amortecimento ou jogabilidade, é derivada implicitamente:
 $$
-	\vec{v}_t \approx \frac{\vec{x}_{t+\Delta t} - \vec{x}_{t-\Delta t}}{2\Delta t}.
+	\vec v_t \approx \frac{\vec x_{t+\Delta t} - \vec x_{t-\Delta t}}{2\Delta t}.
 $$
 
 Esse é o método usado por \citeonline{jakobsen2001advanced}, por ser um método estável e eficiente, especialmente em sistemas sujeitos a restrições geométricas além de eliminar a necessidade de armazenar explicitamente a velocidade, utilizando as posições atual e anterior para estimar a nova posição.
@@ -163,7 +163,7 @@ $$(x_2 - x_0) \cdot (x_1 - x_0) < \alpha.$$
 
 Um método alternativo e simples que \citeonline{jakobsen2001advanced} também mostra é usar restrições de distância auxiliares, que não foi usada neste trabalho, onde a distância entre as extremidades $i$ e $j$ não seja maior que um valor $d_{min}$:
 
-$$|\vec{x}_i - \vec{x}_j| > d_{min}$$ 
+$$|\vec x_i - \vec x_j| > d_{min}$$ 
 
 \begin{figure}[htb]
 	\centering
@@ -183,10 +183,10 @@ Apesar dessa abordagem parecer ingênua, ao resolver todas restrições localmen
 Deve-se encontrar o movimento mínimo que satisfaça cada restrição, para restrição linear podemos fazer como no Algoritmo~\ref{al:linear_constraint} que irá separar ou aproximar as partículas de tal forma que satisfaçam a distância $d$.
 \begin{algorithm}[htb]
 	\caption{Relaxamento para restrição linear}
-	$\vec{\delta} \leftarrow \vec{x}_2 - \vec{x}_1$ \\
+	$\vec{\delta} \leftarrow \vec x_2 - \vec x_1$ \\
 	$c \leftarrow \frac{\|\vec{\delta}\| - d}{\|\vec{\delta}\|}$ \\
-	$\vec{x}_1 \leftarrow \vec{x}_1 - \epsilon \, \vec{\delta} \, c$ \\
-	$\vec{x}_2 \leftarrow \vec{x}_2 + \epsilon \, \vec{\delta} \, c$
+	$\vec x_1 \leftarrow \vec x_1 - \epsilon \, \vec{\delta} \, c$ \\
+	$\vec x_2 \leftarrow \vec x_2 + \epsilon \, \vec{\delta} \, c$
 	\label{al:linear_constraint}
 \end{algorithm}
 Onde $\epsilon$ representa o tamanho de passo local para convergência para solução ideal. Quando $\epsilon=1$ as partículas são movidas imediatamente para posição correta. Essa situação é comparável a um sistema de molas interconectadas entre partículas de rigidez que tendem para o infinito ou a uma haste rígida separando as duas partículas. 

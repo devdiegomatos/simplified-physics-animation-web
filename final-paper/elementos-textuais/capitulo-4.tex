@@ -31,14 +31,14 @@ A metodologia de \citeonline{jakobsen2001advanced} pode ser compreendida como um
 
 A resposta à colisão envolve dois passos principais. O primeiro consiste em separar os elementos geométricos (vértices, arestas ou faces) que se encontram em interpenetração, o que caracteriza um processo estritamente geométrico. O segundo passo corresponde a um processo iterativo de relaxamento, no qual os elementos afetados ajustam suas posições de acordo com as restrições impostas pelo sistema físico.
 
-Para dois objetos convexos $A$ e $B$ em colisão, o esquema de detecção de colisão deve retornar os pontos de contato de cada objeto, o tamanho da penetração e a direção $\vec{d}$ de separação. Com essas informações devemos tratar duas configurações possíveis: colisão vértice-vértice ou colisão vértice-aresta.
+Para dois objetos convexos $A$ e $B$ em colisão, o esquema de detecção de colisão deve retornar os pontos de contato de cada objeto, o tamanho da penetração e a direção $\vec d$ de separação. Com essas informações devemos tratar duas configurações possíveis: colisão vértice-vértice ou colisão vértice-aresta.
 
 \subsection*{Colisão Vértice-Vértice}
 
 Se o contato ocorre pontualmente entre duas partículas $p$ e $q$, a correção é dividida igualmente (assumindo massas iguais):
 $$
-	\Delta \vec{p} = -\frac{1}{2}\vec{d}, \qquad
-	\Delta \vec{q} = +\frac{1}{2}\vec{d}.
+	\Delta \vec p = -\frac{1}{2}\vec d, \qquad
+	\Delta \vec q = +\frac{1}{2}\vec d.
 $$
 
 \subsection*{Colisão Vértice-Aresta}
@@ -50,27 +50,27 @@ $$
 	\label{fig:processo-separacao}
 \end{figure}
 
-Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec{x}_1$ e $\vec{x}_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec{x}_1$ e $\vec{x}_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec{x}_1'$, $\vec{x}_2'$ de tal forma que garanta uma coerência geométrica, como mostra na Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
+Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec x_1$ e $\vec x_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec x_1$ e $\vec x_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec x_1'$, $\vec x_2'$ de tal forma que garanta uma coerência geométrica, como mostra na Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
 \begin{equation}
-	p = \alpha \vec{x}_1 + (1-\alpha) \vec{x}_2, \qquad 0 \leq \alpha \leq 1,
+	p = \alpha \vec x_1 + (1-\alpha) \vec x_2, \qquad 0 \leq \alpha \leq 1,
 	\label{eq:parametric_edge}
 \end{equation}
 ou seja, quando $\alpha=0, p=x_2$, quando $\alpha=1, p=x_1$.
 
-Durante a separação, a correção $\Delta \vec{p}$ deve alterar indiretamente $\vec{x}_1$ e $\vec{x}_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando quanto o ponto de contato $p$ está ao ``longo'' da aresta $\vec{x_1 x_2} = \vec{x_2} - \vec{x_1}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
+Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando quanto o ponto de contato $p$ está ao ``longo'' da aresta $\vec{x_1 x_2} = \vec{x_2} - \vec{x_1}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
 \begin{align*}
-	\vec{x}_1 +&= \alpha \Delta_p \\
-	\vec{x}_2 +&= (1-\alpha) \Delta_p \\
+	\vec x_1 +&= \alpha \Delta_p \\
+	\vec x_2 +&= (1-\alpha) \Delta_p \\
 	\alpha
 	&= 
 	\frac{
-		(\vec{p} - \vec{x}_2) \cdot (\vec{x}_1 - \vec{x}_2)
+		(\vec p - \vec x_2) \cdot (\vec x_1 - \vec x_2)
 	}{
-		\|\vec{x}_1 - \vec{x}_2\|^2
+		\|\vec x_1 - \vec x_2\|^2
 	}.
 	\label{eq:alpha_projection}
 \end{align*}
-Isso garante que a geometria original é preservada e que o ponto $\vec{p}$, definido implicitamente pelos vértices da aresta, é deslocado exatamente pela quantidade desejada.
+Isso garante que a geometria original é preservada e que o ponto $\vec p$, definido implicitamente pelos vértices da aresta, é deslocado exatamente pela quantidade desejada.
 
 \section{Algoritmo de Expansão de Politopos (EPA)}
 
