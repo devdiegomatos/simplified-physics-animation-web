@@ -2,7 +2,6 @@ import { type Body } from '@devdiegomatos/liso-engine/bodies';
 import { Engine } from '@devdiegomatos/liso-engine';
 import p5 from 'p5';
 import type IScene from './IScene';
-import { vec3 } from 'gl-matrix';
 
 export default class Scene implements IScene {
     protected entities: Body[] = [];
@@ -80,7 +79,7 @@ export default class Scene implements IScene {
     }
 
     getCollisionsCount(): number {
-        return this.engine.metrics.collisionCount[this.engine.metrics.particlesCount.length - 1];
+        return this.engine.metrics.collisionsTest[this.engine.metrics.collisionsTest.length - 1];
     }
 
     getConstraintsCount(): number {

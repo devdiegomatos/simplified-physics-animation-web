@@ -96,8 +96,8 @@ import SceneThreaded from '@/scenes/SceneThreaded';
 let hasStarted = false,
     threaded = false;
 let totalEntities = 100;
-let broadPhase: BroadPhaseMode = BroadPhaseMode.Naive;
-let collisionDetection: CollisionDetectionMode = CollisionDetectionMode.Sat;
+let broadPhase: BroadPhaseMode = BroadPhaseMode.GridSpatialPartition;
+let collisionDetection: CollisionDetectionMode = CollisionDetectionMode.GjkEpa;
 const fps = ref(0);
 
 // Main thread mode variables
