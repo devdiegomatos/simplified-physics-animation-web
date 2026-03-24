@@ -1,6 +1,6 @@
 \chapter{Resposta a colisões}
 
-A resposta a colisões é uma etapa fundamental em qualquer sistema de simulação física interativa. Após detectar que dois corpos estão em interpenetração, torna-se necessário aplicar um conjunto de correções que restaurem a plausibilidade física do movimento, evitando instabilidades numéricas. 
+A resposta a colisões é uma etapa fundamental em qualquer sistema de simulação física interativa. Após detectar a interpenetração entre dois corpos, torna-se necessário aplicar um conjunto de correções que restaurem a plausibilidade física do movimento, evitando instabilidades numéricas.
 
 Este capítulo discute os princípios clássicos e as formulações modernas de resposta a colisão, estabelecendo a relação entre os métodos geométricos de detecção e a abordagem baseada em partículas e restrições proposta por \citeonline{jakobsen2001advanced}, que fundamenta este trabalho.
 
@@ -59,8 +59,8 @@ ou seja, quando $\alpha=0, p=x_2$, quando $\alpha=1, p=x_1$.
 
 Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando quanto o ponto de contato $p$ está ao ``longo'' da aresta $\vec{x_1 x_2} = \vec{x_2} - \vec{x_1}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
 \begin{align*}
-	\vec x_1 +&= \alpha \Delta_p \\
-	\vec x_2 +&= (1-\alpha) \Delta_p \\
+	\vec x_1 +&= \alpha \Delta \vec p \\
+	\vec x_2 +&= (1-\alpha) \Delta \vec p \\
 	\alpha
 	&= 
 	\frac{
@@ -74,9 +74,13 @@ Isso garante que a geometria original é preservada e que o ponto $\vec p$, defi
 
 \section{Algoritmo de Expansão de Politopos (EPA)}
 
-Enquanto o SAT fornece naturalmente o MTV, o algoritmo BGJK apenas informa se há interseção. Para obtermos mais informações necessárias para etapa de separação, o BGJK pode ser modificado para retornar o simplex final $Q$ em caso de colisão. Dessa forma, é possível usar este simplex para calcular a profundidade e a normal da colisão necessárias para a resposta física, utiliza-se o Algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}).
+O algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}) surge no contexto da evolução dos métodos de detecção de colisão entre objetos convexos, particularmente como uma extensão do algoritmo de Gilbert-Johnson-Keerthi (GJK), proposto por \citeonline{gilbert1988fast}. O GJK foi originalmente desenvolvido para computar a distância mínima entre dois conjuntos convexos no espaço tridimensional, sendo posteriormente adaptado para testes de interseção. No entanto, sua formulação não fornece diretamente informações necessárias para a resposta à colisão, como a profundidade de penetração ou a direção de separação.
 
-O Algoritmo~\ref{alg:epa} expande o simplex final do BGJK iterativamente até encontrar a fronteira do CSO mais próxima da origem. A distância $\delta$ entre o ponto mais próximo com a origem é a profundidade de penetração. Além disso, o vetor normal $\hat n$ para o ponto mais próximo é a direção de separação (ponto de contato). A solução ingênua é usar a normal da face mais próxima da origem, porém um simplex não precisa conter nenhuma das faces do polígono original, o que pode levar ao cálculo de uma normal incorreta.
+O desenvolvimento do EPA é geralmente atribuído a \citeonline{vandenbergen1999gjk}, cujos trabalhos estabeleceram bases importantes para a manipulação geométrica do espaço de configuração (CSO). Diferentemente do GJK, que opera sobre um simplex iterativamente ajustado em direção à origem, o EPA parte de um simplex que já contém a origem e o expande progressivamente até aproximar a fronteira do CSO. Apesar de amplamente utilizado, o EPA não foi introduzido por meio de uma única publicação seminal claramente definida, tendo emergido gradualmente a partir de implementações práticas e relatórios técnicos.
+
+Enquanto o BGJK resolve o problema de detecção de colisão ao verificar se a origem pertence ao CSO, o Algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}) resolve o problema dual de encontrar a menor translação necessária para separar os objetos, equivalente ao vetor de menor norma que leva o CSO a não conter mais a origem. Para isso o BGJK pode ser modificado para retornar o simplex final $Q$ em caso de colisão. Dessa forma, é possível usar este simplex para calcular a profundidade e a normal da colisão necessárias para a resposta física, utiliza-se o EPA.
+
+O Algoritmo~\ref{alg:epa} expande o simplex final do BGJK iterativamente até encontrar a fronteira do CSO mais próxima da origem. A distância $\delta$ entre o ponto mais próximo com a origem define a profundidade de penetração. Além disso, o vetor normal $\hat n$ para o ponto mais próximo define a direção de separação. A solução ingênua é usar a normal da face mais próxima da origem, porém um simplex não precisa conter nenhuma das faces do polígono original, o que pode levar à estimativa incorreta da normal de separação.
 \begin{algorithm}[htb]
 	\caption{EPA}
 	\KwIn{Simplex}
@@ -115,7 +119,7 @@ Em sistemas baseados em posições a estabilidade depende fortemente do processo
 \subsection*{Empilhamento}
 
 Métodos simplificados têm dificuldade em manter pilhas estáveis de objetos, principalmente quando as correções não são distribuídas de forma global e consistente. O empilhamento tende a %"escorregar" 
-``escorregar'' ou colapsar devido à falta de precisão numérica adequado.
+``escorregar'' ou colapsar devido à falta de precisão numérica adequada.
 
 \subsection*{Tunneling}
 
