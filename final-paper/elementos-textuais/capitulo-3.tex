@@ -277,7 +277,7 @@ $$
 	}
 
 	$\vec d \leftarrow (\vec{rs} \times \vec{ro}) \times \vec{rs}$ \\
-	$\vec p \leftarrow \text{Calcular ponto mais próximo da aresta} rs $ 
+	$\vec p \leftarrow \text{Calcular ponto mais próximo da aresta } rs $ 
 
 	\Return Q, $\vec d$, $\vec p$ \tcp{Origem na região da aresta}
 	\label{alg:ericson-1simplex}
@@ -335,14 +335,14 @@ então a origem encontra-se na região associada à aresta $\vec{rt}$, e o simpl
 
 	\If{$\vec d_1 \cdot \vec{ro} > 0$}{
 		\tcp{Origem na região da aresta $\vec{rs}$}
-		\Return executar Caso 1-Simplex($Q \setminus \{ \vec t \}$) 
+		\Return executar Caso 1-Simplex($\{ \vec r, \vec s \}$) 
 	}
 
 	$\vec d_2 \leftarrow \vec{rt} \times \vec n$ \\
 
 	\If{$\vec d_2 \cdot \vec{ro} > 0$}{
 		\tcp{Origem na região da aresta $\vec{rt}$}
-		\Return executar Caso 1-Simplex($Q \setminus \{ \vec s \}$) 
+		\Return executar Caso 1-Simplex($\{ \vec r, \vec t \}$) 
 	}
 
 	\tcp{Há interseção, distância 0}
@@ -352,7 +352,7 @@ então a origem encontra-se na região associada à aresta $\vec{rt}$, e o simpl
 
 \subsection*{Boolean GJK}
 
-Dependendo do problema a ser resolvido, é possível modificar o GJK para resolver um problema de decisão e determinar se há ou não interseção entre dois objetos A e B, conhecido como Boolean GJK (BGJK). Este algoritmo se baseia no fato de que A e B se intersectam se, e somente se, sua CSO contém a origem. Desta forma o objetivo do GJK se reduz a determinar se a CSO contém ou não a origem. 
+Dependendo do problema a ser resolvido, é possível modificar o GJK para resolver um problema de decisão e determinar se há ou não interseção entre dois objetos $A$ e $B$, conhecido como Boolean GJK (BGJK). Este algoritmo se baseia no fato de que $A$ e $B$ se intersectam se, e somente se, sua CSO contém a origem. Desta forma o objetivo do GJK se reduz a determinar se a CSO contém ou não a origem. 
 
 Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{muratori2016implementingGJK}, como o Algoritmo~\ref{alg:bgjk}, que é baseado nos avanços de \citeonline{gjk_enhanced} e \citeonline{ericson2004gjk}. Na formulação de Muratori, o simplex é manipulado com o objetivo exclusivo de verificar se ele contém a origem, testando regiões da mesma forma que \citeonline{ericson2004gjk}. Seu critério de parada é mais simples: (1) não há necessidade de calcular explicitamente o ponto mais próximo da origem; 
 % (2) a direção de busca não precisa estar normalizada pois sua escala não influencia o resultado; 
@@ -365,7 +365,7 @@ Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{
 		\begin{algorithm}[H]
 			\caption{Caso 1-simplex BGJK}
 			\KwIn{Simplex $Q = \{\vec r, \vec s \}$}
-			\KwOut{Simplex Q, Falso, $\vec d$}
+			\KwOut{Simplex Q, $\vec d$, False}
 
 			$\vec{rs} \leftarrow \vec s - \vec r$ \\
 			$\vec{ro} \leftarrow -\vec r$ \\
@@ -375,16 +375,16 @@ Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{
 			\BlankLine
 
 			\If{$\vec{rs}\cdot\vec{ro} \le 0$}{
-				\Return $Q \setminus \{ \vec s \}$, False, $\vec{ro}$
+				\Return $\{ \vec r \}$, False, $\vec{ro}$
 			}
 			\uElseIf{$\vec{sr}\cdot\vec{so} \le 0$}{
-				\Return $Q \setminus \{ \vec r \}$, False, $\vec{so}$
+				\Return $\{ \vec s \}$, False, $\vec{so}$
 			}
 
 			$\vec d \leftarrow (\vec{rs} \times \vec{ro}) \times \vec{rs}$ \\
 			% $\vec p \leftarrow \text{Calcular ponto mais proximo}$
 
-			\Return Q, False, $\vec d$
+			\Return Q, $\vec d$, False
 			\label{alg:bgjk-1simplex}
 
 		\end{algorithm}
@@ -394,7 +394,7 @@ Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{
 		\begin{algorithm}[H]
 			\caption{Caso 2-simplex BGJK}
 			\KwIn{Simplex $Q = \{\vec r, \vec s, \vec t \}$}
-			\KwOut{Simplex Q, True se origem está contida, False caso contrário e $\vec d$ com direção de busca}
+			\KwOut{Simplex Q, $\vec d$, True se origem está contida, False caso contrário}
 
 			$\vec{rs} \leftarrow \vec s - \vec r$ \\
 			$\vec{rt} \leftarrow \vec t - \vec r$ \\
@@ -406,19 +406,19 @@ Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{
 
 			\If{$\vec d_1 \cdot \vec{ro} > 0$}{
 				\tcp{Próximo laço irá executar caso 1-simplex}
-				\Return $Q \setminus \{ \vec t \}$, False, $\vec d_1$
+				\Return $\{ \vec r, \vec s \}$, False, $\vec d_1$
 			}
 
 			$\vec d_2 \leftarrow \vec{rt} \times \vec n$ \\
 
 			\If{$\vec d_2 \cdot \vec{ro} > 0$}{
 				\tcp{Próximo laço irá executar caso-1-simplex}
-				\Return $Q \setminus \{ \vec s \}$, False, $\vec d_2$
+				\Return $\{ \vec r, \vec t \}$, False, $\vec d_2$
 			}
 
 			% $P \leftarrow \text{Calcular ponto mais proximo}$ \\
 
-			\Return Q, True, $\vec d$
+			\Return Q, $\vec d$, True
 			\label{alg:bgjk-2simplex}
 		\end{algorithm}
 	\end{minipage}
