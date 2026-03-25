@@ -211,7 +211,7 @@ A função NearestSimplex implementada conforme o subalgoritmo de Ericson recebe
 
 Em particular, veremos que, sempre que NearestSimplex retorna um conjunto com 3 pontos, o algoritmo GJK termina, já que este triângulo ou contém a origem, ou garantidamente não há interseção entre $A$ e $B$.
 
-Para cada dimensão do simplex Q é feito uma análise, neste trabalho iremos trabalhar apenas com objetos em 2D, por isso trataremos apenas dos casos 1-simplex e 2-simplex. Para descrever o subalgoritmo de Ericson, denotamos a origem por $O$ e os vértices do simplex por $R$, $S$ e $T$, em ordem alfabética, sendo $R$ o ponto mais recente. Associamos a cada ponto seu vetor posição em relação à origem:
+Para cada dimensão do simplex Q é feito uma análise. Neste trabalho iremos trabalhar apenas com objetos em 2D, por isso trataremos apenas dos casos 1-simplex e 2-simplex. Para descrever o subalgoritmo de Ericson, denotamos a origem por $O$ e os vértices do simplex por $R$, $S$ e $T$, em ordem alfabética, sendo $R$ o ponto mais recente. Associamos a cada ponto seu vetor posição em relação à origem:
 $$
 \vec r = \vec{OR}, \qquad
 \vec s = \vec{OS}, \qquad
@@ -220,7 +220,8 @@ $$
 
 O caso 0-simplex é impossível, pois, como visto no Algoritmo~\ref{alg:gjk}, dentro do laço principal do GJK, o simplex é sempre atualizado com um novo ponto de suporte, e o simplex inicial já contém um ponto de suporte. Portanto, o simplex mínimo possível é um 1-simplex.
 
-No caso 1-simplex temos um simplex formado pelos pontos $R$ e $S$ que dividem o espaço em três regiões: a região do vértice $R$ são todos os pontos anteriores ao vértice $R$, similarmente a região do vértice $S$ são todos os pontos anteriores ao vértice $S$, e consequentemente a região da aresta $\vec{rs} = \vec s - \vec r$ são todos os pontos que estão no corredor entre $R$ e $S$, como ilustrado pela Figura~\ref{fig:gjk-ericson-1simplex}.
+No caso 1-simplex temos um simplex formado pelos pontos $R$ e $S$ que dividem o espaço em três regiões, como ilustrado pela Figura~\ref{fig:gjk-ericson-1simplex}.
+A região do vértice $R$ corresponde a todos os pontos $P$ tais que $(P-R) \cdot (S-R) < 0$, e similarmente para a região do vértice $S$. Consequentemente, a região da aresta $\vec{rs} = \vec s - \vec r$ corresponde a todos os pontos que estão no corredor entre $R$ e $S$.
 
 \begin{figure}[htb]
 	\centering
@@ -229,46 +230,18 @@ No caso 1-simplex temos um simplex formado pelos pontos $R$ e $S$ que dividem o 
 	\label{fig:gjk-ericson-1simplex}
 \end{figure}
 
-Para determinar em qual região do simplex a origem se encontra, considera-se o vetor $\vec{ro} = -\vec r$, que aponta de $R$ para a origem. Se
-$$
-\vec{rs}\cdot\vec{ro} \le 0,
-$$
-então a origem está na região associada ao vértice $R$, deve-se descartar $S$ e a nova direção de busca é atualizada em direção a $R$. De forma análoga, se
-$$
-\vec{sr}\cdot\vec{so} \le 0,
-$$
-então a origem está na região associada ao vértice $S$, deve-se descartar $R$ e a nova direção de busca é atualizada em direção a $S$. Caso contrário, a origem encontra-se na região da aresta $\vec{rs}$, como no Algoritmo~\ref{alg:ericson-1simplex}. Se ambos os casos anteriores forem falso, mantenha-se ambos os pontos $R$ e $S$ e a nova direção de busca deve ser perpendicular ao vetor $\vec{rs}$ e orientada em direção à origem. Essa direção pode ser obtida utilizando o produto triplo vetorial
+%Para determinar em qual região do simplex a origem se encontra, considera-se o vetor $\vec{ro} = -\vec r$, que aponta de $R$ para a origem. 
+%então a origem está na região associada ao vértice $R$, deve-se descartar $S$ e a nova direção de busca é atualizada em direção a $R$. De forma análoga, se
+% $$
+% \vec{sr}\cdot\vec{so} \le 0,
+% $$
+Se a origem está na região de $R$, então $S$ é descartado e a nova direção de busca $\vec d$ é o vetor $\vec{ro}$. Similarmente, para o caso onde origem está na região de $S$, a nova direção $\vec d$ é o vetor $\vec{so}$. Caso a origem se encontre na região da aresta $\vec{rs}$, a nova direção de busca deve ser perpendicular ao vetor $\vec{rs}$ e orientada em direção à origem. Essa direção pode ser obtida utilizando o produto triplo vetorial
 $$
 \vec d = (\vec{rs} \times \vec{ro}) \times \vec{rs}.
 $$
-O produto triplo gera um vetor perpendicular a $\vec{rs}$ e contido no plano definido por $\vec{rs}$ e $\vec{ro}$, e orientado em direção à origem.
+O produto triplo gera um vetor perpendicular a $\vec{rs}$ e contido no plano definido por $\vec{rs}$ e $\vec{ro}$, e orientado em direção à origem. 
 % com sinal positivo caso a origem esteja a direita de $\vec{rs}$ ou negativo caso contrário. 
 Entretanto, como as regiões de vértice estão no limite do CSO, se a origem estiver contida nas regiões de vértice então a origem está além do limite do CSO. Portanto, não há interseção entre os objetos A e B.
-
-\begin{algorithm}[htb]
-	\caption{Caso 1-simplex}
-	\KwIn{Simplex $Q = \{\vec r, \vec s \}$}
-	\KwOut{Simplex Q, direção de busca $\vec d$ e ponto mais próximo $\vec p$}
-
-	$\vec{rs} \leftarrow \vec s - \vec r$ \\
-	$\vec{ro} \leftarrow -\vec r$ \\
-	$\vec{sr} \leftarrow \vec r - \vec s$ \\
-	$\vec{so} \leftarrow -\vec s$ \\
-
-
-	\If{$\vec{rs}\cdot\vec{ro} \le 0$}{
-		\Return $Q \setminus \{ \vec s \}$, $\vec{ro}$, $\vec r$ \tcp{Origem na região do vértice R}
-	}
-	\uElseIf{$\vec{sr}\cdot\vec{so} \le 0$}{
-		\Return $Q \setminus \{ \vec r \}$, $\vec{so}$, $\vec s$ \tcp{Origem na região do vértice S}
-	}
-
-	$\vec d \leftarrow (\vec{rs} \times \vec{ro}) \times \vec{rs}$ \\
-	$\vec p \leftarrow \text{Calcular ponto mais proximo}$
-
-	\Return Q, $\vec d$, $\vec p$ \tcp{Origem na região da aresta}
-	\label{alg:ericson-1simplex}
-\end{algorithm}
 
 Caso a iteração termine nesse passo, o ponto mais próximo da origem é obtido projetando a origem sobre o segmento. O parâmetro de projeção da origem sobre o segmento é dado por:
 $$
@@ -283,10 +256,37 @@ $$
 		\vec r + t(\vec{rs}), & 0<t<1.
 	\end{cases}
 $$
+ O Algoritmo~\ref{alg:ericson-1simplex} sumariza a análise do caso 1-simplex.
 
-O caso 2-simplex, temos um triângulo que divide o espaço em 7 regiões: regiões do vértice $R$, $S$, $T$, regiões da aresta $\vec{rs}, \vec{st}, \vec{rt}$, 
+ \begin{algorithm}[htb]
+	\caption{Caso 1-simplex}
+	\KwIn{Simplex $Q = \{\vec r, \vec s \}$}
+	\KwOut{Simplex Q, direção de busca $\vec d$ e ponto mais próximo $\vec p$}
+
+	$\vec{rs} \leftarrow \vec s - \vec r$ \\
+	$\vec{ro} \leftarrow -\vec r$ \\
+	$\vec{sr} \leftarrow \vec r - \vec s$ \\
+	$\vec{so} \leftarrow -\vec s$ \\
+
+
+	\If{$\vec{rs}\cdot\vec{ro} \le 0$}{
+		\Return $\{ \vec r \}$, $\vec{ro}$, $\vec r$ \tcp{Origem na região do vértice R}
+	}
+	\uElseIf{$\vec{sr}\cdot\vec{so} \le 0$}{
+		\Return $\{ \vec s \}$, $\vec{so}$, $\vec s$ \tcp{Origem na região do vértice S}
+	}
+
+	$\vec d \leftarrow (\vec{rs} \times \vec{ro}) \times \vec{rs}$ \\
+	$\vec p \leftarrow \text{Calcular ponto mais próximo da aresta} rs $ 
+
+	\Return Q, $\vec d$, $\vec p$ \tcp{Origem na região da aresta}
+	\label{alg:ericson-1simplex}
+\end{algorithm}
+
+
+Para o caso 2-simplex, temos um triângulo que divide o espaço em 7 regiões: regiões dos vértices $R$, $S$, $T$, regiões das arestas $\vec{rs}, \vec{st}, \vec{rt}$, 
 % que são todos os pontos que estão no corredor da aresta e anteriores ao seu vértice, 
-e o interior do $\triangle RST$, como ilustrado na Figura~\ref{fig:gjk-ericson-2simplex}. Como estamos trabalhando em 2D, se a origem está contida no triângulo, então podemos afirmar que os dois objetos se intersectam. Caso contrário, dependendo de qual região ele cai, manteremos essa parte da figura e iteraremos novamente, como no Algoritmo~\ref{alg:ericson-2simplex}. Em 3D seria necessário considerar a posição relativa da origem em relação ao plano do triângulo (para cima ou para baixo).
+e o interior do $\triangle RST$, como ilustrado na Figura~\ref{fig:gjk-ericson-2simplex}. Como estamos trabalhando em 2D, se a origem está contida no triângulo, então podemos afirmar que os dois objetos se intersectam. Caso contrário, dependendo de em qual região ele cai, manteremos o vértice ou aresta correspondente e iteraremos novamente, como no Algoritmo~\ref{alg:ericson-2simplex}. Em 3D seria necessário considerar a posição relativa da origem em relação ao plano do triângulo (para cima ou para baixo).
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{gjk-ericson-2simplex.svg}
@@ -294,7 +294,7 @@ e o interior do $\triangle RST$, como ilustrado na Figura~\ref{fig:gjk-ericson-2
 	\label{fig:gjk-ericson-2simplex}
 \end{figure}
 
-No entanto, o processo de encontrar o simplex ideal elimina a necessidade de verificar quatro dessas regiões. Como o ponto de suporte $T$ foi o primeiro a ser adicionado, $S$ foi o segundo e $R$ foi o terceiro. O ponto de suporte $R$ foi adicionado como resultado de encontrar o vetor normal a aresta $\vec{st}$. Isso significa que a região da aresta $\vec{st}$, não pode conter a origem. As três regiões do vértice também não podem conter a origem, uma vez que essas regiões estão além dos limites do CSO, que foram derivados dos pontos de suporte. Isso deixa apenas as regiões $\vec{rs}$, $\vec{rt}$ e o interior do $\triangle RST$ para investigar.
+No entanto, o processo de encontrar o simplex ideal elimina a necessidade de verificar quatro dessas regiões. Como o ponto de suporte $T$ foi o primeiro a ser adicionado, $S$ foi o segundo e $R$ foi o terceiro, então o ponto de suporte $R$ foi adicionado como resultado de encontrar o vetor normal à aresta $\vec{st}$. Isso significa que a região da aresta $\vec{st}$ não pode conter a origem. As três regiões do vértice também não podem conter a origem, uma vez que essas regiões estão além dos limites do CSO, que foram derivadas dos pontos de suporte. Isso deixa apenas as regiões $\vec{rs}$, $\vec{rt}$ e o interior do $\triangle RST$ para investigar.
 
 Dessa forma, para determinar em qual região do simplex a origem se encontra, analisam-se inicialmente as regiões associadas às arestas incidentes em $R$. O vetor normal ao plano do triângulo é obtido por
 $$
@@ -308,7 +308,7 @@ Se
 $$
 \vec d_1 \cdot \vec{ro} > 0,
 $$
-então a origem encontra-se na região associada à aresta $\vec{rs}$. Nesse caso o simplex é reduzido ao segmento $\{R,S\}$ e o algoritmo passa a executar o caso 1-simplex.
+então a origem encontra-se na região associada à aresta $\vec{rs}$. Nesse caso, o simplex é reduzido ao segmento $\{R,S\}$ e o algoritmo passa a executar o caso 1-simplex.
 
 De maneira análoga, define-se
 $$
@@ -316,9 +316,9 @@ $$
 $$
 Se
 $$
-\vec d_2 \cdot \vec{ro} > 0
+\vec d_2 \cdot \vec{ro} > 0,
 $$
-então a origem encontra-se na região associada à aresta $\vec{rt}$, e o simplex é reduzido ao segmento $\{R,T\}$ e o algoritmo passa a executar o caso 1-simplex. Se ambos os casos anteriores forem falso, a origem encontra-se no interior do triângulo.
+então a origem encontra-se na região associada à aresta $\vec{rt}$, e o simplex é reduzido ao segmento $\{R,T\}$ e o algoritmo passa a executar o caso 1-simplex. Se ambos os casos anteriores forem falsos, a origem encontra-se no interior do triângulo.
 
 \begin{algorithm}[htb]
 	\caption{Caso 2-simplex}
@@ -352,11 +352,11 @@ então a origem encontra-se na região associada à aresta $\vec{rt}$, e o simpl
 
 \subsection*{Boolean GJK}
 
-Dependendo do problema a ser resolvido, é possível modificar o GJK para resolver um problema de decisão e determinar se há ou não interseção entre dois objetos A e B, conhecido como Boolean GJK (BGJK). Este algoritmo se baseia no fato de que A e B se intersectam se, e somente se, sua CSO contém a origem. Desta forma o objetivo do GJK se reduz para determinar se a CSO contém ou não a origem. 
+Dependendo do problema a ser resolvido, é possível modificar o GJK para resolver um problema de decisão e determinar se há ou não interseção entre dois objetos A e B, conhecido como Boolean GJK (BGJK). Este algoritmo se baseia no fato de que A e B se intersectam se, e somente se, sua CSO contém a origem. Desta forma o objetivo do GJK se reduz a determinar se a CSO contém ou não a origem. 
 
-Neste trabalho foi implementado uma versão do BGJK apresentada por \citeonline{muratori2016implementingGJK}, como o Algoritmo~\ref{alg:bgjk}, que é baseado nos avanços de \citeonline{gjk_enhanced} e \citeonline{ericson2004gjk}. Na formulação de Murotori, o simplex é manipulado com o objetivo exclusivo de verificar se ele contém a origem, testando regiões da mesma forma que \citeonline{ericson2004gjk}. Seu critério de parada é mais simples: (1) não há necessidade de calcular explicitamente o ponto mais próximo da origem; 
+Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{muratori2016implementingGJK}, como o Algoritmo~\ref{alg:bgjk}, que é baseado nos avanços de \citeonline{gjk_enhanced} e \citeonline{ericson2004gjk}. Na formulação de Muratori, o simplex é manipulado com o objetivo exclusivo de verificar se ele contém a origem, testando regiões da mesma forma que \citeonline{ericson2004gjk}. Seu critério de parada é mais simples: (1) não há necessidade de calcular explicitamente o ponto mais próximo da origem; 
 % (2) a direção de busca não precisa estar normalizada pois sua escala não influencia o resultado; 
-(2) o caso 1-simplex sempre retorna Falso, pois, não tem como garantir que a origem está contida no CSO. Veja o Algoritmo~\ref{alg:bgjk-1simplex} e~\ref{alg:bgjk-2simplex}. O algoritmo termina quando a origem é encontrada dentro do simplex ou quando o simplex $Q_j = Q_{j+1}$, indicando que a origem não pertence ao CSO, como no Algoritmo. 
+(2) o caso 1-simplex sempre retorna Falso, pois não é possível garantir que a origem esteja contida no CSO. Veja o Algoritmo~\ref{alg:bgjk-1simplex} e~\ref{alg:bgjk-2simplex}. O algoritmo termina quando a origem é encontrada dentro do simplex ou quando o simplex $Q_j = Q_{j+1}$, indicando que a origem não pertence ao CSO, como no Algoritmo~\ref{alg:bgjk}.
 
 \begin{figure}[ht]
 	\centering
@@ -452,6 +452,6 @@ Neste trabalho foi implementado uma versão do BGJK apresentada por \citeonline{
 	\label{alg:bgjk}
 \end{algorithm}
 
-É possível modificar esse algoritmo para usar variáveis de controle adicionais e parar com antecedencia em caso a origem está contida em regiões de vértice. Neste trabalho foi preferido manter a formulação mais simples e se beneficiar da estrutura iterativa.
+É possível modificar esse algoritmo para usar variáveis de controle adicionais e parar com antecedência  caso a origem esteja contida em regiões de vértice. Neste trabalho preferiu-se manter a formulação mais simples e se beneficiar da estrutura iterativa.
 
-Existem certas configurações de objetos que podem levar a loop infinitos devido a erros de operação com ponto flutuante. Para evitar isso, pode-se ser feito correções numéricos de erro no algoritmo. \citeonline{muratori2016implementingGJK} apresenta uma solução simples: introduz um critério de parada adicional, limitando o número máximo de iterações. Se esse limite for atingido significa que ocorreu aproximações sucessivas do simplex e o algoritmo assume, de forma consecutiva, que os objetos estão em colisão. Embora essa abordagem possa resultar em falsos positivos em casos extremos, ela é eficaz para garantir a robustez do algoritmo em cenários práticos, onde tais configurações são raras.
+Existem certas configurações de objetos que podem levar a \textit{loops} infinitos devido a erros de operação com ponto flutuante. Para evitar isso, pode-se empregar práticas de correções numéricas de erros no algoritmo. \citeonline{muratori2016implementingGJK} apresenta uma solução simples: introduz um critério de parada adicional, limitando o número máximo de iterações. Se esse limite for atingido, significa que ocorreram aproximações sucessivas do simplex e o algoritmo assume que os objetos estão em colisão. Embora essa abordagem possa resultar em falsos positivos em casos extremos, ela é eficaz para garantir a robustez do algoritmo em cenários práticos, onde tais configurações são raras.

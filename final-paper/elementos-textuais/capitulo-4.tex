@@ -23,7 +23,7 @@ Nos Métodos de Penalidades, colisões são tratadas como interpenetrações que
 
 \subsection*{Método Baseado em Restrições com Multiplicadores de Lagrange}
 
-Os métodos baseados em restrições formulam os contatos como equações que devem ser satisfeitas exatamente. São resolvidos usando multiplicadores de Lagrange, essa abordagem é robusta e adequada para sistemas complexos, mas exige a solução de sistemas lineares, tornando sua aplicação onerosa em plataformas Web.
+Os métodos baseados em restrições formulam os contatos como equações que devem ser satisfeitas exatamente. São resolvidos usando multiplicadores de Lagrange, sendo uma abordagem robusta e adequada para sistemas complexos, mas que exige a solução de sistemas lineares, tornando sua aplicação onerosa em plataformas Web.
 
 \section{Processo de Separação}
 
@@ -46,18 +46,18 @@ $$
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=0.6\linewidth]{processo-separacao}
-	\caption{Processo de separação caso colisão vértice-aresta. Correção das posição para configuração válida. Perceba como $p$ está mais próximo de $x_1$, esse vértice é movido mais.}
+	\caption{Processo de separação caso colisão vértice-aresta. Correção das posição para configuração válida. Perceba que, como $p$ está mais próximo de $x_1$, esse vértice é movido mais.}
 	\label{fig:processo-separacao}
 \end{figure}
 
-Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec x_1$ e $\vec x_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec x_1$ e $\vec x_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec x_1'$, $\vec x_2'$ de tal forma que garanta uma coerência geométrica, como mostra na Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
+Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec x_1$ e $\vec x_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec x_1$ e $\vec x_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec {x'_1}$, $\vec {x'_2}$ de tal forma que garanta uma coerência geométrica, como mostra a Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
 \begin{equation}
 	p = \alpha \vec x_1 + (1-\alpha) \vec x_2, \qquad 0 \leq \alpha \leq 1,
 	\label{eq:parametric_edge}
 \end{equation}
 ou seja, quando $\alpha=0, p=x_2$, quando $\alpha=1, p=x_1$.
 
-Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando quanto o ponto de contato $p$ está ao ``longo'' da aresta $\vec{x_1 x_2} = \vec{x_2} - \vec{x_1}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
+Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando o local onde o ponto de contato $p$ se encontra ao longo da aresta $\{x_1 x_2\}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
 \begin{align*}
 	\vec x_1 +&= \alpha \Delta \vec p \\
 	\vec x_2 +&= (1-\alpha) \Delta \vec p \\
