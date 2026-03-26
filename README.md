@@ -93,3 +93,13 @@ This homepage demonstrates examples from the monograph using the locally impleme
 * **Vue 3** – Frontend framework for the demo.
 * **TailwindCSS** – Utility-first CSS framework for styling.
 * **P5** – p5.js is a friendly tool for learning to code and make art. It is a free and open-source JavaScript library built by an inclusive, nurturing community.
+
+## Complementary Resources
+
+[MURATORI, C. Implementing GJK, 2006](https://caseymuratori.com/blog_0003)
+[Winter Dev, GJK Algorithm Explanation & Implementation, 2021](https://www.youtube.com/watch?v=MDusDn8oTSE)
+[Winter Dev, EPA Explanation & Implementation, 2021](https://www.youtube.com/watch?v=0XQ2FSz3EK8)
+[dyn4j, GJK (Gilbert–Johnson–Keerthi), 2010](https://dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/)
+[dyn4j, GJK, Distance, Closest Points, 2010](https://dyn4j.org/2010/04/gjk-distance-closest-points/)
+[dyn4j, EPA (Expanding Polytope Algorithm, 2010)](https://dyn4j.org/2010/05/epa-expanding-polytope-algorithm/)
+[Philip Djonov, GJK, 2012](https://vec3.ca/gjk)
