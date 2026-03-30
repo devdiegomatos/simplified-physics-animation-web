@@ -31,7 +31,9 @@ A metodologia de \citeonline{jakobsen2001advanced} pode ser compreendida como um
 
 A resposta à colisão envolve dois passos principais. O primeiro consiste em separar os elementos geométricos (vértices, arestas ou faces) que se encontram em interpenetração, o que caracteriza um processo estritamente geométrico. O segundo passo corresponde a um processo iterativo de relaxamento, no qual os elementos afetados ajustam suas posições de acordo com as restrições impostas pelo sistema físico.
 
-Para dois objetos convexos $A$ e $B$ em colisão, o esquema de detecção de colisão deve retornar os pontos de contato de cada objeto, o tamanho da penetração e a direção $\vec d$ de separação. Com essas informações devemos tratar duas configurações possíveis: colisão vértice-vértice ou colisão vértice-aresta.
+Para dois objetos convexos $A$ e $B$ em colisão, é necessário uma descrição da área de contato. É comum o esquema de detecção de colisão retornar os pontos de contato de cada objeto e o vetor de translação mínima (MTV, do inglês \textit{Minimum Translation Vector}). O MTV $\vec d$ de um par de objetos que se intersectam é o vetor mais curto sobre o qual um dos objetos precisa ser transladado para separar o par.
+
+Com essas informações devemos tratar duas configurações possíveis: colisão vértice-vértice ou colisão vértice-aresta.
 
 \subsection*{Colisão Vértice-Vértice}
 
@@ -72,33 +74,84 @@ Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $
 \end{align*}
 Isso garante que a geometria original é preservada e que o ponto $\vec p$, definido implicitamente pelos vértices da aresta, é deslocado exatamente pela quantidade desejada.
 
+\section{SAT com Cálculo do MTV}
+
+O SAT pode ser estendido para calcular o vetor de tranlsção mínima. Caso todos os eixos apresentem sobreposição, a menor sobreposição encontrada corresponde à magnitude do vetor necessário para resolver a colisão, como mostrado no Algoritmo~\ref{alg:sat_mtv}, onde $\epsilon$ é um valor numérico para tratar erros de operação flutuante e deve-se ser um valor baixo. 
+
+\begin{algorithm}[htb]
+	\caption{SAT com cálculo do MTV}
+	\KwIn{Polígonos convexos $A$ e $B$}
+	\KwOut{$\vec d$ e $\delta$, ou falso}
+	$\vec d \leftarrow \vec 0$ \\
+	$\delta \leftarrow \infty$ \\
+	\ForEach{aresta $\hat{n}$ de A e B}{
+		$\hat{n} \leftarrow$ normal unitária de $\hat{n}$ \\
+		$p_1 \leftarrow$ Projeção de $A$ \\
+		$p_2 \leftarrow$ Projeção de $B$ \\
+		$\Delta \leftarrow$ sobreposição entre $p_1$ e $p_2$ \\
+		\If{$\Delta \leq \epsilon$}{
+			\Return{False}
+		}
+		\If{$\Delta < \delta$}{
+			$\delta \leftarrow \Delta$ \\
+			$\vec d \leftarrow \hat{n}$
+		}
+	}
+	\Return{$\vec d$, $\delta$}
+	\label{alg:sat_mtv}
+\end{algorithm},
+
 \section{Algoritmo de Expansão de Politopos (EPA)}
 
-O algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}) surge no contexto da evolução dos métodos de detecção de colisão entre objetos convexos, particularmente como uma extensão do algoritmo de \citeonline{gjk}. O GJK foi originalmente desenvolvido para computar a distância mínima entre dois conjuntos convexos no espaço tridimensional, sendo posteriormente adaptado para testes de interseção. No entanto, sua formulação não fornece diretamente informações necessárias para a resposta à colisão, como a profundidade de penetração ou a direção de separação.
+O algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}) surge no contexto da evolução dos métodos de detecção de colisão entre objetos convexos, particularmente como uma extensão do algoritmo de GJK. No entanto, sua formulação não fornece diretamente informações necessárias para a resposta à colisão, como a profundidade de penetração ou a direção de separação. O EPA resolve o problema dual do GJK de encontrar a menor translação necessária para separar os objetos, o MTV. O desenvolvimento do EPA é geralmente atribuído a \citeonline{bergen2001proximity}, cujos trabalhos estabeleceram bases importantes para a manipulação geométrica do espaço de configuração (CSO). 
 
-O desenvolvimento do EPA é geralmente atribuído a \citeonline{vandenbergen1999gjk}, cujos trabalhos estabeleceram bases importantes para a manipulação geométrica do espaço de configuração (CSO). Diferentemente do GJK, que opera sobre um simplex iterativamente ajustado em direção à origem, o EPA parte de um simplex que já contém a origem e o expande progressivamente até aproximar a fronteira do CSO. Apesar de amplamente utilizado, o EPA não foi introduzido por meio de uma única publicação seminal claramente definida, tendo emergido gradualmente a partir de implementações práticas e relatórios técnicos.
+Vimos no GJK que a distância de um par de objetos é um ponto na fronteira do CSO mais próximo da origem. A estratégia para encontrar o MTV é começar com um politopo que contém a origem e tem vértices que se encontram na fronteira, e expandir esse politopo adicionando vértices que também estão na fronteira. Para isso o GJK pode ser modificado para retornar o simplex final $Q$ e usá-lo como entrada para o EPA. 
 
-Enquanto o BGJK resolve o problema de detecção de colisão ao verificar se a origem pertence ao CSO, o Algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytope Algorithm}) resolve o problema dual de encontrar a menor translação necessária para separar os objetos, equivalente ao vetor de menor norma que leva o CSO a não conter mais a origem. Para isso o BGJK pode ser modificado para retornar o simplex final $Q$ em caso de colisão. Dessa forma, é possível usar este simplex para calcular a profundidade e a normal da colisão necessárias para a resposta física, utiliza-se o EPA.
+O EPA é um algoritmo iterativo em que cada etapa da iteração selecionamos a face do politopo mais próxima da origem e a subdividimos no ponto de suporte $\vec w$. Seja o ponto $p$ mais próximo da origem que pertence a face selecionada, e o seu vetor posição $\vec p$, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então, a face selecionada é subdividida inserindo o ponto de suporte $\vec w = S_{CSO} (\vec v)$. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenha sido feito aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
 
-O Algoritmo~\ref{alg:epa} expande o simplex final do BGJK iterativamente até encontrar a fronteira do CSO mais próxima da origem. A distância $\delta$ entre o ponto mais próximo com a origem define a profundidade de penetração. Além disso, o vetor normal $\hat n$ para o ponto mais próximo define a direção de separação. A solução ingênua é usar a normal da face mais próxima da origem, porém um simplex não precisa conter nenhuma das faces do polígono original, o que pode levar à estimativa incorreta da normal de separação.
+\begin{figure}[htb]
+	\centering
+	\includegraphics{epa.jpg}
+	\caption{Uma sequência de iterações do algoritmo de expansão de politopos. Uma seta indica o vetor mais curto $\vec v$. Um ponto aberto indica o novo vértice $\vec w$. Fonte:~\cite{bergen2001proximity}}
+	\label{fig:epa}
+\end{figure}
+
+O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até encontrar a face da fronteira do CSO mais próxima da origem. A distância $\delta$ da origem a essa face define a profundidade de penetração, enquanto a normal $\hat{n}$ à face define a direção de separação. A tolerância $\epsilon$ (ex: $10^{-4}$) e o limite de iterações são cruciais para evitar loops infinitos em casos de precisão numérica flutuante ou formas curvas aproximadas.
+% \begin{algorithm}[htb]
+%     \caption{EPA}
+%     \label{alg:epa}
+%     \KwIn{Simplex $Q$ (retornado pelo GJK em caso de colisão)}
+%     \KwOut{$\hat{n}$, $\delta$}
+
+%     \While{iterações $<$ MAX\_ITER}{
+%         $e \leftarrow$ face do politopo mais próxima da origem\;
+%         $p \leftarrow$ ponto de suporte na direção da normal de $e$\;
+%         $\delta \leftarrow p \cdot \hat{n}(e)$\;
+%         \If{$\delta - \|e\| < \epsilon$}{
+%             \KwRet{$\hat{n}(e),\; \delta$}
+%         }
+        
+% 		$Q \leftarrow \{ Q \cup p \}$
+%     }
+% \end{algorithm}
 \begin{algorithm}[htb]
-	\caption{EPA}
-	\KwIn{Simplex}
-	\KwOut{$\hat{n}$, $\delta$}
-	
-	\While{iterações $<$ MAX\_ITER}{
-		e $\leftarrow$ Encontrar aresta mais próxima a origem \\
-		p $\leftarrow$ Calcular novo ponto de suporte na direção da normal de e \\
-		$\delta \leftarrow p \cdot normal(e)$ \\
-		\If{$|\delta - length(e)| < \epsilon$}{
-			\KwRet{normal(e), $\delta$}
-		}
-		
-		Adicionar ponto ao simplex
-	}
-	\label{alg:epa}
+    \caption{EPA}
+    \label{alg:epa}
+    \KwIn{Simplex $Q$ (retornado pelo GJK em caso de colisão)}
+    \KwOut{$\hat{n}$, $\delta$}
+
+    \While{iterações $<$ MAX\_ITER}{
+        $e = (\vec v_i, \vec v_j) \leftarrow$ aresta mais próxima da origem \\
+        $\hat{n}_e \leftarrow$ normal unitária externa de $e$ \\
+        $p \leftarrow S_{CSO}(\hat{n}_e)$ \\
+        $\delta \leftarrow \vec p \cdot \hat{n}_e$ \\
+        \If{$|\delta - d(e)| < \epsilon$}{
+            \KwRet{$\hat{n}_e, \delta$}
+        }
+        Remover a aresta $e$ de $Q$ \\
+        Inserir as arestas $(\vec v_i, \vec p)$ e $(\vec p, \vec v_j)$ em $Q$ \\
+    }
 \end{algorithm}
-A tolerância $\epsilon$ (ex: $10^{-4}$) e o limite de iterações são cruciais para evitar loops infinitos em casos de precisão numérica flutuante ou formas curvas aproximadas.
 
 \section{Limitações}
 

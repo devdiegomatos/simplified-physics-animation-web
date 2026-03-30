@@ -7,9 +7,7 @@ Este capítulo introduz os principais conceitos utilizados no âmbito deste trab
 \section{Teorema do Eixo Separador (SAT)}
 \label{sec:sat}
 
-O Teorema do Eixo Separador é um dos métodos mais difundidos para detecção de colisão entre polígonos convexos. Além de identificar a presença ou ausência de interseção, o SAT também pode ser utilizado para calcular o vetor de translação mínima (MTV, do inglês \textit{Minimum Translation Vector}), útil para correções geométricas e resposta física.
-
-O SAT é um algoritmo genérico, rápido, que pode remover a necessidade de ter código de detecção de colisão para cada par tipo de forma, reduzindo assim o código e a manutenção. Seu funcionamento se baseia em traçar raios paralelos sob dois objetos (a partir de uma fonte luminosa, por exemplo) se as sombras formadas estiverem separadas então não há colisão, repita esse processo ao redor das formas, caso não encontre uma sombra que esteja separada uma da outra os objetos estão em colisão. O SAT se baseia no teorema geométrico que afirma:
+O Teorema do Eixo Separador (SAT, do inglês \textit{Separating Axis Theorem}) é um dos métodos mais difundidos para detecção de colisão entre polígonos convexos. É um algoritmo genérico, rápido, que pode remover a necessidade de ter código de detecção de colisão para cada par tipo de forma, reduzindo assim o código e a manutenção. Seu funcionamento se baseia em traçar raios paralelos sob dois objetos (a partir de uma fonte luminosa, por exemplo) se as sombras formadas estiverem separadas então não há colisão, repita esse processo ao redor das formas, caso não encontre uma sombra que esteja separada uma da outra os objetos estão em colisão. O SAT se baseia no teorema geométrico que afirma:
 
 \begin{teorema}
 	Dois polígonos convexos $A$ e $B$ não se intersectam se, e somente se, existir um eixo (reta) sobre o qual as projeções de $A$ e $B$ não se sobrepõem.
@@ -24,8 +22,6 @@ Tal eixo é denominado eixo separador, como ilustrado na Figura~\ref{fig:eixo-se
 	\label{fig:eixo-separador}
 \end{figure}
 
-% \subsection*{Projeção sobre um eixo}
-
 Dado um eixo unitário $\hat{n}$ e um conjunto de vértices $\{ v \}$ de um polígono, a projeção gera um intervalo escalar $[min, max]$ definido por:
 \begin{align*}
 	min &= \min_i (\hat{n} \cdot \vec v_i) \\
@@ -37,32 +33,7 @@ $$
 $$
 como ilustrado na Figura~\ref{fig:eixo-separador}. Se essa condição falhar em qualquer eixo candidato, os objetos estão separados e o algoritmo pode encerrar imediatamente.
 
-% \subsection*{Algoritmo de Interseção e MTV}
-
-O SAT pode ser estendido para calcular a penetração mínima. Caso todos os eixos apresentem sobreposição, a menor sobreposição encontrada corresponde à magnitude do vetor necessário para resolver a colisão, como mostrado no Algoritmo~\ref{alg:sat_mtv}
-\begin{algorithm}[htb]
-	\caption{SAT com cálculo do MTV}
-	\KwIn{Polígonos convexos $A$ e $B$}
-	\KwOut{$\vec d$ e $\delta$, ou falso}
-	$\vec d \leftarrow \vec 0$ \\
-	$\delta \leftarrow \infty$ \\
-	\ForEach{aresta $\hat{n}$ de A e B}{
-		$\hat{n} \leftarrow$ normal unitária de $\hat{n}$ \\
-		$p_1 \leftarrow$ Projeção de $A$ \\
-		$p_2 \leftarrow$ Projeção de $B$ \\
-		$\Delta \leftarrow$ sobreposição entre $p_1$ e $p_2$ \\
-		\If{$\Delta \leq \epsilon$}{
-			\Return{False}
-		}
-		\If{$\Delta < \delta$}{
-			$\delta \leftarrow \Delta$ \\
-			$\vec d \leftarrow \hat{n}$
-		}
-	}
-	\Return{$\vec d$, $\delta$}
-	\label{alg:sat_mtv}
-\end{algorithm},
-onde $\epsilon$ é um valor numérico para tratar erros de operação flutuante e deve-se ser um valor baixo. O método possui complexidade linear no número de arestas e é bastante eficiente para polígonos convexos em 2D. Em 3D, entretanto, o número de eixos candidatos cresce significativamente, reduzindo sua praticidade em relação a alternativas como o GJK.
+O método possui complexidade linear no número de arestas e é bastante eficiente para polígonos convexos em 2D. Para politopos que possuem um grande número de elementos geométricos (vértices, arestas, faces), como em 3D, o número de eixos a serem testados é quadrático em relação ao número desses elementos. Reduzindo sua praticidade em relação a alternativas como o GJK.
 
 \section{Algoritmo de Gilbert-Johnson-Keerthi (GJK)}
 
