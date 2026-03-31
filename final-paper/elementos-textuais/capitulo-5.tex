@@ -19,7 +19,7 @@ Em sistemas de simulação física e detecção de colisões, a representação 
 	\label{fig:fecho-convexo-interseccao}
 \end{figure}
 
-A principal motivação para o uso de objetos delimitadores é que formas mais simples (como caixas ou esferas) permitem testes de sobreposição muito mais baratos do que a geometria original que envolvem. Além disso, se eles se intersectam não necessariamente os objetos se intersectam, mas caso não se intersectam necessariamente os objetos não se intersectam, como ilustrado na Figura~\ref{fig:fecho-convexo-interseccao}. Esse fato pode ser usado para acelerar os testes de colisão, como veremos posteriormente. 
+A principal motivação para o uso de objetos delimitadores é que formas mais simples (como caixas ou esferas) permitem testes de sobreposição muito mais baratos do que a geometria original que envolvem. Além disso, se as formas delimitadoras se intersectam, não necessariamente os objetos se intersectam; entretanto, mas se elas não se intersectam, necessariamente os objetos não se intersectam, como ilustrado na Figura~\ref{fig:fecho-convexo-interseccao}. Esse fato pode ser usado para acelerar os testes de colisão, como veremos posteriormente. 
 
 Segundo \citeonline{moller2018}, nem todos os objetos geométricos servem como objetos delimitadores eficazes. As propriedades desejáveis para objetos delimitadores incluem:
 \begin{itemize}
@@ -27,7 +27,7 @@ Segundo \citeonline{moller2018}, nem todos os objetos geométricos servem como o
 	\item Ajuste preciso
 	\item Cálculo econômico
 	\item Fácil de girar e transformar
-	\item Consome pouca memória
+	\item Baixo consumo de memória
 \end{itemize}
 como ilustrado na Figura~\ref{fig:formas-fecho-convexo}.
 
@@ -44,9 +44,9 @@ As esferas constituem o volume delimitador mais simples, definidas apenas por um
 $$
 \text{Sphere} = \{ x \in \mathbb{R}^3 \; | \; \|x - c\| \le r \}.
 $$
-Testes de colisão entre esferas são rápidos, porém inadequados para objetos de proporções irregulares. Elipsoides oferecem melhor ajuste, mas aumentam o custo de teste. Por isso, essas formas são frequentemente utilizadas em fases preliminares da detecção, ou como nós intermediários em hierarquias de volumes delimitadores (BVH, do inglês \textit{Bouding Volume Hierarchy}).
+Testes de colisão entre esferas são rápidos, porém inadequados para objetos de proporções irregulares. Elipsoides oferecem melhor ajuste, mas aumentam o custo de teste. Por isso, essas formas são frequentemente utilizadas em fases preliminares da detecção, ou como nós intermediários em hierarquias de volumes delimitadores (BVH, do inglês \textit{Bounding Volume Hierarchy}).
 
-\subsection*{Caixa Delimitadora Alinhada ao Eixo Coordenado}
+\subsection*{Caixa Delimitadora Alinhada aos Eixos Coordenados}
 
 A caixa delimitadora alinhada aos eixos (AABB, do inglês \textit{Axis Align Bounding Box}) é um dos objetos delimitadores mais comuns. Trata-se de um paralelepípedo (ou retângulo, em 2D) cujas faces são paralelas aos eixos do sistema de coordenadas. Seu teste de interseção é simples como no Algoritmo~\ref{alg:interseccao-aabb}.
 \begin{algorithm}[htb]
