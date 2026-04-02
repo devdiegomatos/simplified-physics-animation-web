@@ -7,20 +7,28 @@ Este capítulo introduz os principais conceitos utilizados no âmbito deste trab
 \section{Teorema do Eixo Separador (SAT)}
 \label{sec:sat}
 
-O Teorema do Eixo Separador (SAT, do inglês \textit{Separating Axis Theorem}) é um dos métodos mais difundidos para detecção de colisão entre polígonos convexos. É um algoritmo genérico, rápido, que pode remover a necessidade de ter código de detecção de colisão para cada par tipo de forma, reduzindo assim o código e a manutenção. Seu funcionamento se baseia em traçar raios paralelos sob dois objetos (a partir de uma fonte luminosa, por exemplo) se as sombras formadas estiverem separadas então não há colisão, repita esse processo ao redor das formas, caso não encontre uma sombra que esteja separada uma da outra os objetos estão em colisão. O SAT se baseia no teorema geométrico que afirma:
+O Teorema do Eixo Separador (SAT, do inglês \textit{Separating Axis Theorem}) é um dos métodos mais difundidos para detecção de colisão entre polígonos convexos. É um algoritmo genérico, rápido, que pode remover a necessidade de implementar código específico de detecção de colisão para cada par de tipos de forma, reduzindo assim o código e a manutenção. O teorema decorre de um resultado fundamental da análise convexa que afirma que:
+% Seu funcionamento se baseia em traçar raios paralelos sob dois objetos (a partir de uma fonte luminosa, por exemplo) se as sombras formadas estiverem separadas então não há colisão, repita esse processo ao redor das formas, caso não encontre uma sombra que esteja separada uma da outra os objetos estão em colisão. O SAT se baseia no teorema geométrico que afirma:
 
 \begin{teorema}
-	Dois polígonos convexos $A$ e $B$ não se intersectam se, e somente se, existir um eixo (reta) sobre o qual as projeções de $A$ e $B$ não se sobrepõem.
+	Dois polígonos convexos A e B não se intersectam se, e somente se, existe um hiperplano separador P tal que A está de um lado de P e B está do outro.
 	\label{theo:sat}
 \end{teorema}
 
-Tal eixo é denominado eixo separador, como ilustrado na Figura~\ref{fig:eixo-separador}. Em termos computacionais, o algoritmo testa um conjunto finito de eixos candidatos. Para polígonos, os candidatos suficientes são as normais das faces (ou arestas, em 2D) de ambos os objetos.
+O teste do eixo separador decorre intuitivamente do Teorema~\ref{theo:sat}, pois dois objetos convexos não podem ``se curvar'' um ao redor do outro. Assim, quando não estão se intersectando, haverá um espaço entre eles no qual um hiperplano pode ser inserido para separar os dois objetos. Quando os objetos estão se intersectando, nenhuma superfície pode ser inserida entre eles para separá-los.~\cite{ericson2004real}
+
+% Tal eixo é denominado eixo separador, como ilustrado na Figura~\ref{fig:eixo-separador}. Em termos computacionais, o algoritmo testa um conjunto finito de eixos candidatos. Para polígonos, os candidatos suficientes são as normais das faces (ou arestas, em 2D) de ambos os objetos.
+
+Dado um hiperplano $P$ que separa $A$ e $B$, um eixo separador é uma reta $L$ perpendicular a $P$. Esse eixo é denominado separador porque as projeções ortogonais de $A$ e $B$ sobre $L$ resultam em dois intervalos que não se sobrepõem. Veja a Figura~\ref{fig:eixo-separador}. Como esses dois intervalos não se sobrepõem, conclui-se que as geometrias são disjuntas. Como um eixo separador existe se, e somente se, existir um hiperplano separador, pode-se testar qualquer um dos dois. No entanto, na prática, verifica-se que é melhor testar a separação em um eixo, pois isso resulta em um teste menos custoso.
+
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=0.7\linewidth]{eixo-separador}
-	\caption{Face escolhida em amarelo, eixo separador perpendicular a face.}
+	\caption{Aresta escolhida em amarelo, eixo separador perpendicular à face. Fonte: Autor}
 	\label{fig:eixo-separador}
 \end{figure}
+
+Eixos separadores são fáceis de identificar por inspeção. No entanto, para uma implementação, é importante conseguir limitar automaticamente um número infinito de eixos potencialmente separadores a apenas alguns eixos a serem testados. Para poliedros convexos, é possível reduzir drasticamente o número de eixos a testar. Ignorando a ordem, dois objetos poliédricos podem entrar em contato de diferentes maneiras, como face-face, face-aresta, face-vértice, aresta-aresta, aresta-vértice ou vértice-vértice~\cite{ericson2004real}. Como vértices podem ser considerados parte das arestas, no caso bidimensional, isso implica que os eixos candidatos podem ser obtidos a partir das normais das arestas dos polígonos.
 
 Dado um eixo unitário $\hat{n}$ e um conjunto de vértices $\{ v \}$ de um polígono, a projeção gera um intervalo escalar $[min, max]$ definido por:
 \begin{align*}
@@ -33,7 +41,7 @@ $$
 $$
 como ilustrado na Figura~\ref{fig:eixo-separador}. Se essa condição falhar em qualquer eixo candidato, os objetos estão separados e o algoritmo pode encerrar imediatamente.
 
-O método possui complexidade linear no número de arestas e é bastante eficiente para polígonos convexos em 2D. Para politopos que possuem um grande número de elementos geométricos (vértices, arestas, faces), como em 3D, o número de eixos a serem testados é quadrático em relação ao número desses elementos. Reduzindo sua praticidade em relação a alternativas como o GJK.
+O método possui complexidade quadrática no número de arestas~\cite{ericson2004real}, o que pode reduzir sua praticidade em relação a alternativas como o GJK, especialmente em dimensões mais altas.
 
 \section{Algoritmo de Gilbert-Johnson-Keerthi (GJK)}
 

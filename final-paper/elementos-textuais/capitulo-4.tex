@@ -76,7 +76,11 @@ Isso garante que a geometria original é preservada e que o ponto $\vec p$, defi
 
 \section{SAT com Cálculo do MTV}
 
-O SAT pode ser estendido para calcular o vetor de translação mínima. Caso todos os eixos apresentem sobreposição, a menor sobreposição encontrada corresponde à magnitude do vetor necessário para resolver a colisão, como mostrado no Algoritmo~\ref{alg:sat_mtv}, onde $\epsilon$ é um valor numérico para tratar erros de operação flutuante e deve-se ser um valor baixo. 
+O SAT pode ser estendido para calcular o vetor de translação mínima. Em vez de encerrar antecipadamente quando uma sobreposição é detectada em um eixo, todos os eixos são testados quanto à sobreposição. Após todos os eixos terem sido testados, o eixo com a menor sobreposição (normalizada) pode ser usado como a normal de contato, e a magnitude da sobreposição pode ser utilizada para estimar a profundidade de penetração
+% Com algum trabalho adicional, pontos de contato também podem ser calculados com a ajuda do eixo separador
+~\cite{ericson2004real}. Como mostrado no Algoritmo~\ref{alg:sat_mtv}.
+
+% Caso todos os eixos apresentem sobreposição, a menor sobreposição encontrada corresponde à magnitude do vetor necessário para resolver a colisão, como mostrado no Algoritmo~\ref{alg:sat_mtv}, onde $\epsilon$ é um valor numérico para tratar erros de operação flutuante e deve-se ser um valor baixo. 
 
 \begin{algorithm}[htb]
 	\caption{SAT com cálculo do MTV}
@@ -107,7 +111,7 @@ O algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytop
 
 Vimos no GJK que a distância de um par de objetos é um ponto na fronteira do CSO mais próximo da origem. A estratégia para encontrar o MTV é começar com um politopo que contém a origem e tem vértices que se encontram na fronteira do CSO, e expandir esse politopo adicionando vértices que também estão na fronteira. Para isso o GJK pode ser modificado para retornar o simplex final $Q$ e usá-lo como entrada para o EPA. 
 
-O EPA é um algoritmo iterativo em que, para cada etapa da iteração, selecionamos a face do politopo mais próxima da origem. Sejam $p$ o ponto mais próximo da origem que pertence à face selecionada, e $\vec p$ o seu vetor posição . Então, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então, a face selecionada é subdividida inserindo o ponto de suporte $\vec w = S_{CSO} (\vec v)$. Observe que $||\vec w||$ é um limite \textit{superior} para a profundidade de penetração. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenham sido feitas aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
+O EPA é um algoritmo iterativo em que, para cada etapa da iteração, selecionamos a face do politopo mais próxima da origem. Sejam $p$ o ponto mais próximo da origem que pertence à face selecionada, e $\vec p$ o seu vetor posição. Então, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então a face selecionada é subdividida no ponto $p$ e o extende até o ponto de suporte $\vec w = S_{CSO} (\vec v)$. Observe que $||\vec w||$ é um limite \textit{superior} para a profundidade de penetração. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenham sido feitas aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
 
 \begin{figure}[htb]
 	\centering
@@ -143,13 +147,13 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
     \While{iterações $<$ MAX\_ITER}{
         $e = (\vec v_i, \vec v_j) \leftarrow$ aresta mais próxima da origem \\
         $\hat{n}_e \leftarrow$ normal unitária externa de $e$ \\
-        $p \leftarrow S_{CSO}(\hat{n}_e)$ \\
-        $\delta \leftarrow \vec p \cdot \hat{n}_e$ \\
+        $w \leftarrow S_{CSO}(\hat{n}_e)$ \\
+        $\delta \leftarrow \vec w \cdot \hat{n}_e$ \\
         \If{$|\delta - d(e)| < \epsilon$}{
             \KwRet{$\hat{n}_e, \delta$}
         }
         Remover a aresta $e$ de $Q$ \\
-        Inserir as arestas $(\vec v_i, \vec p)$ e $(\vec p, \vec v_j)$ em $Q$ \\
+        Inserir as arestas $(\vec v_i, \vec w)$ e $(\vec w, \vec v_j)$ em $Q$ \\
     }
 \end{algorithm}
 
