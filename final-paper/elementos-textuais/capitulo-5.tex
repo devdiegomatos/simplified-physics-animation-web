@@ -19,7 +19,7 @@ Em sistemas de simulação física e detecção de colisões, a representação 
 	\label{fig:fecho-convexo-interseccao}
 \end{figure}
 
-A principal motivação para o uso de objetos delimitadores é que formas mais simples (como caixas ou esferas) permitem testes de sobreposição muito mais baratos do que a geometria original que envolvem. Além disso, se as formas delimitadoras se intersectam, não necessariamente os objetos se intersectam; entretanto, mas se elas não se intersectam, necessariamente os objetos não se intersectam, como ilustrado na Figura~\ref{fig:fecho-convexo-interseccao}. Esse fato pode ser usado para acelerar os testes de colisão, como veremos posteriormente. 
+A principal motivação para o uso de objetos delimitadores é que formas mais simples (como caixas ou esferas) permitem testes de sobreposição muito mais baratos do que a geometria original que envolvem. Além disso, se as formas delimitadoras se intersectam, não necessariamente os objetos se intersectam; entretanto, se elas não se intersectam, necessariamente os objetos não se intersectam, como ilustrado na Figura~\ref{fig:fecho-convexo-interseccao}. Esse fato pode ser usado para acelerar os testes de colisão, como veremos posteriormente. 
 
 Segundo \citeonline{moller2018}, nem todos os objetos geométricos servem como objetos delimitadores eficazes. As propriedades desejáveis para objetos delimitadores incluem:
 \begin{itemize}
@@ -106,11 +106,11 @@ Apresenta complexidade média $O(n \log n)$ em 2D, podendo chegar a $O(n^2)$ em 
 
 \section{Filtragem e Refinamento}
 
-Em sistemas de simulação física com muitos objetos, o custo computacional da detecção de colisão pode rapidamente tornar-se inviável. Uma abordagem ingênua, baseada na verificação de todos os pares possíveis de objetos, apresenta complexidade $O(n^2)$, inviável mesmo para quantidades moderadas de entidades dinâmicas. Observa-se, entretanto, que em cenários realistas apenas uma pequena fração dos objetos encontra-se efetivamente próxima o suficiente para colidir em um dado instante. A partir dessa constatação, a detecção de colisão é tradicionalmente decomposta em duas etapas conceitualmente distintas: Filtragem (\textit{Broad Phase}) e Refinamento (\textit{Narrow Phase}).
+Em sistemas de simulação física com muitos objetos, o custo computacional da detecção de colisão pode rapidamente tornar-se inviável. Uma abordagem ingênua, baseada na verificação de todos os pares possíveis de objetos, apresenta complexidade $O(n^2)$, inviável mesmo para quantidades moderadas de entidades dinâmicas. Observa-se, entretanto, que em cenários realistas apenas uma pequena fração dos objetos encontra-se efetivamente próxima o suficiente para colidir em um dado instante. A partir dessa constatação, a detecção de colisão é tradicionalmente decomposta em duas etapas conceitualmente distintas: filtragem (\textit{Broad Phase}) e refinamento (\textit{Narrow Phase}).
 
-A etapa de Filtragem tem como objetivo reduzir drasticamente o número de pares candidatos à colisão por meio de testes conservadores e de baixo custo computacional. Nessa fase, não se busca determinar com exatidão se dois objetos colidem, mas apenas descartar, com segurança, aqueles pares cuja colisão é geometricamente impossível. Para isso, empregam-se objetos delimitadores simples, como caixas alinhadas aos eixos, em conjunto com estruturas de localização espacial que exploram a coerência espacial da cena. A premissa fundamental é que objetos só podem interagir se estiverem suficientemente próximos.
+A etapa de refinamento tem como objetivo reduzir drasticamente o número de pares candidatos à colisão por meio de testes conservadores e de baixo custo computacional. Nessa fase, não se busca determinar com exatidão se dois objetos colidem, mas apenas descartar, com segurança, aqueles pares cuja colisão é geometricamente impossível. Para isso, empregam-se objetos delimitadores simples, como caixas alinhadas aos eixos, em conjunto com estruturas de localização espacial que exploram a coerência espacial da cena. A premissa fundamental é que objetos só podem interagir se estiverem suficientemente próximos.
 
-As técnicas de partição espacial constituem um dos principais instrumentos da Filtragem. Essas técnicas subdividem o domínio contínuo da simulação em regiões menores, tipicamente convexas, cada uma associada a um conjunto de referências aos objetos que nela se encontram total ou parcialmente. Dois objetos só podem colidir se compartilharem ao menos uma dessas regiões, o que reduz significativamente o número de testes de pares necessários. Tal redução, embora dependente da distribuição espacial dos objetos, permite alcançar tempo esperado próximo de $O(n)$ ou $O(n \log n)$ em cenários bem comportados.
+As técnicas de partição espacial constituem um dos principais instrumentos da refinamento. Essas técnicas subdividem o domínio contínuo da simulação em regiões menores, tipicamente convexas, cada uma associada a um conjunto de referências aos objetos que nela se encontram total ou parcialmente. Dois objetos só podem colidir se compartilharem ao menos uma dessas regiões, o que reduz significativamente o número de testes de pares necessários. Tal redução, embora dependente da distribuição espacial dos objetos, permite alcançar tempo esperado próximo de $O(n)$ ou $O(n \log n)$ em cenários bem comportados.
 
 A literatura apresenta diversas estruturas de dados voltadas à organização espacial, incluindo abordagens hierárquicas como \textit{Quadtrees}, \textit{Octrees}, \textit{Binary Space Partitioning Trees} (BSP), \textit{K-d Trees} e \textit{Ball Trees}. As grades uniformes (\textit{Uniform Grids}) constituem um esquema muito usado de subdivisão espacial. 
 
@@ -130,13 +130,13 @@ $$
 i = \left\lfloor \frac{x}{C} \right\rfloor, \quad
 j = \left\lfloor \frac{y}{C} \right\rfloor,
 $$
-onde $C$ representa o tamanho da célula. Como neste trabalho um objeto é representado por um conjunto de pontos, não temos acesso direto ao seu centro, é calculado as coordenadas de todas as células interceptadas por sua AABB, garantindo a propriedade conservadora da Filtragem.
+onde $C$ representa o tamanho da célula. Como neste trabalho um objeto é representado por um conjunto de pontos, não temos acesso direto ao seu centro, é calculado as coordenadas de todas as células interceptadas por sua AABB, garantindo a propriedade conservadora da refinamento.
 
 As coordenadas são linearizadas em uma chave única da célula (\textit{cell key}) através de um mapeamento linear simples:
 $$Key_{cell} = i + j \times C$$
 e os pares $(Key_{cell}, Index_{obj})$ são salvos num array, onde $Index_{obj}$ representa o índice do objeto no array original ou referência da memória.
 
-Uma vez construída a grade, a Filtragem consiste em ordenar os pares pela chave da célula. Nessa etapa pode-se utilizar diversos algoritmos de ordenação encontrados na literatura como o \textit{Radix Sort}. Neste trabalho será usado o algoritmo de ordenação nativo do navegador que depende da implementação do interpretador javascript, como TimSort para o V8 (Google Chrome) ou o MergeSort para o SpiderMonkey (Mozilla Firefox).
+Uma vez construída a grade, a refinamento consiste em ordenar os pares pela chave da célula. Nessa etapa pode-se utilizar diversos algoritmos de ordenação encontrados na literatura como o \textit{Radix Sort}. Neste trabalho será usado o algoritmo de ordenação nativo do navegador que depende da implementação do interpretador javascript, como TimSort para o V8 (Google Chrome) ou o MergeSort para o SpiderMonkey (Mozilla Firefox).
 
 Após a ordenação, os objetos que compartilham a mesma célula aparecem em posições contíguas no array, o quê favorece a localidade espacial e temporal, menos \textit{cache misses} e \textit{page faults}. A partir dessa organização, é possível gerar os pares candidatos à colisão percorrendo o array ordenado e agrupando os objetos por célula. Para evitar testes redundantes, é necessário eliminar duplicatas, se dois objetos A e B caem na mesma célula é preciso testar apenas o par (A, B) e não repetir para o par (B, A). Essa etapa é essencial para preservar os ganhos de desempenho proporcionados pela filtragem espacial. 
 
@@ -153,9 +153,9 @@ O desempenho de métodos baseados em grade uniforme é fortemente influenciado p
 \end{enumerate}
 Assim, a adoção de uma grade uniforme não constitui uma solução universal, mas uma decisão arquitetural dependente das características da cena simulada.
 
-Ao término da Filtragem, obtém-se um conjunto $P$ de pares candidatos à colisão, com redução significativa do custo computacional em relação ao método quadrático. Ainda assim, no pior caso, quando muitos objetos se concentram em uma única célula, a complexidade pode degradar novamente para $O(n^2)$, evidenciando o caráter heurístico dessa etapa.
+Ao término da refinamento, obtém-se um conjunto $P$ de pares candidatos à colisão, com redução significativa do custo computacional em relação ao método quadrático. Ainda assim, no pior caso, quando muitos objetos se concentram em uma única célula, a complexidade pode degradar novamente para $O(n^2)$, evidenciando o caráter heurístico dessa etapa.
 
-A etapa de Refinamento realiza testes geométricos precisos nos pares de candidatos $P$, essa fase é chamada de Narrow Phase. Utiliza-se algoritmos mais sofisticados para determinar se os objetos estão de fato colidindo, como SAT, GJK e EPA, vistos anteriormente. Essa fase nem sempre é obrigatória pois, sua aplicação pode se tratar de objetos retangulares que caibam justamente nas dimensões de sua caixa delimitadora.
+A etapa de refinamento realiza testes geométricos precisos nos pares de candidatos $P$, essa fase é chamada de Narrow Phase. Utiliza-se algoritmos mais sofisticados para determinar se os objetos estão de fato colidindo, como SAT, GJK e EPA, vistos anteriormente. Essa fase nem sempre é obrigatória pois, sua aplicação pode se tratar de objetos retangulares que caibam justamente nas dimensões de sua caixa delimitadora.
 
 \section{Como determinar o intervalo de integração da física}
 
@@ -188,7 +188,7 @@ A necessidade de mecanismos de sincronização, como travas (\textit{locks}), op
 
 Outro aspecto relevante é o não-determinismo introduzido pela execução concorrente. A ordem de escalonamento das threads pode variar entre execuções, levando a resultados físicos ligeiramente diferentes mesmo sob condições iniciais idênticas. Esse comportamento dificulta a depuração, a reprodução de simulações e a implementação de funcionalidades como \textit{replays} ou sincronização em aplicações distribuídas.
 
-Por essas razões, muitas engines físicas modernas optam por paralelizar apenas etapas bem definidas e fracamente acopladas da simulação, como a detecção de colisão na fase de Filtragem, a resolução de colisões na fase de Refinamento e a resposta a colisão em um único thread lógico.
+Por essas razões, muitas engines físicas modernas optam por paralelizar apenas etapas bem definidas e fracamente acopladas da simulação, como a detecção de colisão na fase de refinamento, a resolução de colisões na fase de refinamento e a resposta a colisão em um único thread lógico.
 
 Nem todo paralelismo está associado à execução em múltiplas threads. O paralelismo de dados, explorado por meio de instruções SIMD (\textit{Single Instruction, Multiple Data}), permite aplicar a mesma operação a múltiplos elementos simultaneamente dentro de um único fluxo de execução. Esse modelo é particularmente adequado para etapas da simulação física que envolvem operações homogêneas sobre grandes conjuntos de dados, como a integração temporal das posições, a atualização de velocidades implícitas e testes simples de colisão.
 
