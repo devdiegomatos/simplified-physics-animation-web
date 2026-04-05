@@ -111,12 +111,12 @@ O algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytop
 
 Vimos no GJK que a distância de um par de objetos é um ponto na fronteira do CSO mais próximo da origem. A estratégia para encontrar o MTV é começar com um politopo que contém a origem e tem vértices que se encontram na fronteira do CSO, e expandir esse politopo adicionando vértices que também estão na fronteira. Para isso o GJK pode ser modificado para retornar o simplex final $Q$ e usá-lo como entrada para o EPA. 
 
-O EPA é um algoritmo iterativo em que, para cada etapa da iteração, selecionamos a face do politopo mais próxima da origem. Sejam $p$ o ponto mais próximo da origem que pertence à face selecionada, e $\vec p$ o seu vetor posição. Então, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então a face selecionada é subdividida no ponto $p$ e o extende até o ponto de suporte $\vec w = S_{CSO} (\vec v)$. Observe que $||\vec w||$ é um limite \textit{superior} para a profundidade de penetração. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenham sido feitas aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
+O EPA é um algoritmo iterativo em que, para cada etapa da iteração, selecionamos a face do politopo mais próxima da origem. Sejam $p$ o ponto mais próximo da origem que pertence à face selecionada, e $\vec p$ o seu vetor posição. Então, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então a face selecionada é subdividida no ponto $p$ e o extende até o ponto de suporte $\vec w = S_{CSO} (\vec p)$. Observe que $||\vec w||$ é um limite \textit{superior} para a profundidade de penetração. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenham sido feitas aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
 
 \begin{figure}[htb]
 	\centering
 	\includegraphics{epa.jpg}
-	\caption{Uma sequência de iterações do algoritmo de expansão de politopos. Uma seta indica o vetor mais curto $\vec v$. Um ponto aberto indica o novo vértice $\vec w$. Fonte:~\cite{bergen2001proximity}}
+	\caption{Uma sequência de iterações do algoritmo de expansão de politopos. Uma seta indica o vetor mais curto $\vec p$. Um ponto aberto indica o novo vértice $\vec w$. Fonte:~\cite{bergen2001proximity}}
 	\label{fig:epa}
 \end{figure}
 

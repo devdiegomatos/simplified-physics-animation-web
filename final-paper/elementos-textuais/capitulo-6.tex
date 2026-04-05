@@ -1,48 +1,73 @@
-\chapter{Experimentos}
+\chapter{Implementação e Avaliação Experimental}
 
-Este capítulo apresenta os experimentos realizados com o objetivo de avaliar o desempenho, a estabilidade e a precisão do sistema desenvolvido. Os experimentos também investigam os impactos das otimizações aplicadas nas etapas de \textit{Broad Phase} (utilizando uma grade espacial uniforme), na \textit{Narrow Phase} (empregando SAT e GJK) e na paralelização do cálculo físico por meio de múltiplas threads. O objetivo é verificar a viabilidade dessas técnicas em um ambiente de execução web, onde o custo computacional e a responsividade são fatores críticos.
+\section{Arquitetura e Implementação}
 
-Os experimentos foram conduzidos em um computador com as seguintes especificações:
+Foi desenvolvida uma biblioteca em \textit{TypeScript}, responsável pela implementação dos algoritmos de detecção de colisão, sendo esta reutilizada tanto na aplicação de visualização quanto no ambiente de testes. A engine implementada permite a execução em dois modos distintos: utilizando o algoritmo do Teorema do Eixo Separador (SAT) ou a combinação dos algoritmos GJK/EPA.
+
+A arquitetura do sistema foi organizada de forma independente a visualização, separando a lógica geométrica, os algoritmos de detecção e resposta a colisão da camada de visualização, sendo esta responsabilidade do usuário. Essa abordagem favorece a reutilização de código e facilita a comparação entre diferentes estratégias de detecção de colisão.
+
+Os objetos convexos são representados como uma lista de vértices ordenados, juntamente com uma lista de restrições. Cada restrição atua sobre um par de partículas, aplicando um processo de relaxamento que permite modelar tanto estruturas rígidas quanto deformáveis. Essa escolha de modelagem possibilita a integração da detecção de colisão com simulações físicas baseadas em partículas.
+
+\section{Ambiente de Visualização}
+
+Para facilitar a análise qualitativa do comportamento dos algoritmos, foram desenvolvidas duas aplicações interativas (\textit{demos}), utilizando \textit{Vue.js}, \textit{Vite} e \textit{p5.js}.
+
+A primeira demonstração consiste em um ambiente onde múltiplos objetos convexos são inseridos dentro de uma caixa, permitindo observar a dinâmica de colisões em tempo real. Nessa interface, o usuário pode controlar parâmetros relevantes, como a quantidade de objetos, o algoritmo de detecção de colisão utilizado (SAT ou GJK/EPA) e a estratégia de filtragem, incluindo o uso ou não de uma grade uniforme. Veja a Figura~\ref{fig:demo1}.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{demo1.png}
+    \caption{Fonte: Autor.}
+    \label{fig:demo1}
+\end{figure}
+
+A segunda demonstração apresenta simulações de tecidos e treliças, evidenciando a interação entre objetos deformáveis. Nesse cenário, as restrições entre partículas desempenham papel fundamental na manutenção da estrutura dos objetos, enquanto o sistema de colisão garante a interação física entre diferentes elementos. Veja a Figura~\ref{fig:demo2}.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{demo2.png}
+    \caption{Fonte: Autor.}
+    \label{fig:demo2}
+\end{figure}
+
+\section{Metodologia de Testes}
+
+Os testes foram conduzidos com o objetivo de avaliar o desempenho dos algoritmos implementados sob diferentes configurações, sem a etapa de visualização. A biblioteca nativa javascript de geração de números aleatórios \textit{Math.random} não permite a geração de números pseudoaleatórios com semente fixa. Para garantir a reprodutibilidade dos experimentos, foi utilizada a biblioteca \textit{seedrandom} para geração pseudoaleatória com semente fixa usando.
+
+O primeiro cenário de teste é igual ao primeiro demo (Figura~\ref{fig:demo1}) do ambiente com múltiplos objetos convexos inseridos em uma caixa. Foram variados parâmetros como o número de objetos, o tamanho do espaço de forma a manter constante a densidade de ocupação, de modo a simular diferentes níveis de complexidade.
+
+Para fins de comparação, foram considerados quatro casos distintos:
 \begin{itemize}
-	\item Processador: AMD Ryzen 5 1600X @ 3.3GHz
-	\item Memória RAM: 16 GB DDR4
-	\item Sistema Operacional: Ubuntu 24.04 LTS
-	\item Plataforma de execução: Navegador Firefox 121
-	\item Implementação: Typescript + Web Workers (multi-threading), Vuejs e p5js
+    \item SAT sem estrutura de \textit{broad-phase};
+    \item SAT com grade uniforme;
+    \item GJK/EPA sem estrutura de \textit{broad-phase};
+    \item GJK/EPA com grade uniforme.
 \end{itemize}
 
-\section{Configuração dos Cenários}
+Em cada cenário, o número de objetos foi incrementado progressivamente, variando de 1000 até 10000, em intervalos de 1000 objetos. Para cada configuração, foram realizadas 180 execuções da engine, sendo computada a média dos resultados obtidos.
 
-Três grupos de experimentos foram definidos, cada um com foco em um aspecto distinto do sistema proposto:
+As métricas analisadas incluem o número de colisões detectadas e o tempo médio de execução, permitindo avaliar tanto a eficiência quanto o comportamento dos algoritmos sob diferentes condições.
 
-\subsection*{Experimento 1 — Detecção de Colisões Entre Objetos Convexas}
+\section{Resultados Experimentais}
 
-O segundo experimento teve como objetivo comparar os algoritmos de detecção de colisão SAT e GJK em termos de precisão e custo computacional. Foram utilizados objetos convexos de 3 a 8 vértices (em 2D). Cada cenário variou de 2 até 100 objetos móveis, gerando colisões dinâmicas com rotações e translações aleatórias.
+Os experimentos realizados permitem analisar o impacto das diferentes abordagens de detecção de colisão e estratégias de organização espacial no desempenho do sistema.
 
-Os tempos médios de detecção e a taxa de acertos foram medidos com e sem a utilização de uma etapa de Broad Phase baseada em grade uniforme.
+Observou-se que o aumento do número de objetos resulta em crescimento significativo do tempo de execução, especialmente nos casos em que não há utilização de estruturas de \textit{broad-phase}. Isso ocorre devido ao aumento do número de pares de objetos a serem testados, o que impacta diretamente a complexidade computacional.
 
-\begin{itemize}
-	\item O algoritmo SAT demonstrou desempenho satisfatório em colisões bidimensionais com poucos vértices.
-	\item A introdução da \textit{Broad Phase} reduziu significativamente o número de pares testados na \textit{Narrow Phase}, resultando em ganho médio de até 65\% em desempenho.
-\end{itemize}
+A utilização de uma grade uniforme mostrou-se eficaz na redução do número de testes de colisão necessários, resultando em melhorias substanciais no desempenho, tanto para o SAT quanto para o GJK/EPA.
 
-\subsection*{Experimento 2 — Simulação Multi-Threaded}
+Em relação à comparação entre algoritmos, os resultados indicam que o GJK/EPA apresenta desempenho competitivo em relação ao SAT, especialmente em cenários com maior complexidade geométrica. Essa observação sugere que o custo adicional da construção iterativa do simplex é compensado pela eficiência na verificação de colisões em objetos convexos.
 
-O terceiro experimento avaliou os benefícios do uso de concorrência na simulação física. A implementação utilizou a API \textit{Web Workers} para distribuir a atualização das partículas e as verificações de colisão entre múltiplas threads.
+Além disso, a métrica de número de colisões verdadeiras manteve-se consistente entre os diferentes métodos, indicando que ambas as abordagens produzem resultados corretos do ponto de vista geométrico.
 
-A execucação da física em uma thread separada apresentou estabilidade na renderização.
+\section{Discussão dos Resultados}
 
-\subsection*{Experimento 3 - Comparação Com Box2D}
+Os resultados obtidos indicam que a escolha da estratégia de \textit{broad-phase} possui impacto mais significativo no desempenho geral do sistema do que a escolha do algoritmo de \textit{narrow-phase}. A utilização de uma grade uniforme reduz drasticamente o número de verificações necessárias, tornando o sistema escalável para um maior número de objetos.
 
+A comparação entre SAT e GJK/EPA mostra que ambos os algoritmos são adequados para detecção de colisão entre objetos convexos, porém apresentam características distintas. O SAT possui implementação mais direta, enquanto o GJK/EPA oferece maior flexibilidade e extensibilidade, especialmente quando informações adicionais como profundidade de penetração são necessárias.
 
+Observou-se também que, em cenários com alta densidade de objetos, o desempenho tende a degradar de forma mais acentuada, evidenciando a importância de estruturas auxiliares para particionamento espacial.
 
-\section{Resultados e Discussão}
+De forma geral, os testes indicam que a combinação de GJK/EPA com uma estratégia eficiente de \textit{broad-phase} constitui uma abordagem robusta e eficiente para detecção de colisões em simulações interativas.
 
-Os resultados obtidos indicam que o método de \citeonline{jakobsen2001advanced} apresenta um bom equilíbrio entre estabilidade e simplicidade de implementação, sendo especialmente adequado para simulações de tecidos e cadeias articuladas em tempo real.
-
-Os algoritmos SAT e GJK apresentaram comportamentos complementares: o SAT mostrou-se mais simples e eficiente em 2D, enquanto o GJK foi superior para colisões tridimensionais complexas. A combinação de ambos na \textit{Narrow Phase}, precedida pela otimização em grade uniforme na \textit{Broad Phase}, resultou em ganhos expressivos de desempenho sem perda significativa de precisão.
-
-A utilização de múltiplas threads proporcionou melhorias significativas na taxa de atualização da simulação, especialmente em cenários densos com mais de 100 corpos dinâmicos. O gráfico da Figura ilustra a relação entre número de threads e o ganho de desempenho observado.
-
-\textbf{INSERIR FIGURA}
-
+Esses resultados apontam para a viabilidade da utilização dos algoritmos estudados em aplicações de tempo real, desde que acompanhados de técnicas adequadas de otimização espacial.

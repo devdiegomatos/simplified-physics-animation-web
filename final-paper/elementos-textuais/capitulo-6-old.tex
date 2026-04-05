@@ -1,0 +1,48 @@
+\chapter{Experimentos}
+
+Este capítulo apresenta os experimentos realizados com o objetivo de avaliar o desempenho, a estabilidade e a precisão do sistema desenvolvido. Os experimentos também investigam os impactos das otimizações aplicadas nas etapas de \textit{Broad Phase} (utilizando uma grade espacial uniforme), na \textit{Narrow Phase} (empregando SAT e GJK) e na paralelização do cálculo físico por meio de múltiplas threads. O objetivo é verificar a viabilidade dessas técnicas em um ambiente de execução web, onde o custo computacional e a responsividade são fatores críticos.
+
+Os experimentos foram conduzidos em um computador com as seguintes especificações:
+\begin{itemize}
+	\item Processador: AMD Ryzen 5 1600X @ 3.3GHz
+	\item Memória RAM: 16 GB DDR4
+	\item Sistema Operacional: Ubuntu 24.04 LTS
+	\item Plataforma de execução: Navegador Firefox 121
+	\item Implementação: Typescript + Web Workers (multi-threading), Vuejs e p5js
+\end{itemize}
+
+\section{Configuração dos Cenários}
+
+Três grupos de experimentos foram definidos, cada um com foco em um aspecto distinto do sistema proposto:
+
+\subsection*{Experimento 1 — Detecção de Colisões Entre Objetos Convexas}
+
+O segundo experimento teve como objetivo comparar os algoritmos de detecção de colisão SAT e GJK em termos de precisão e custo computacional. Foram utilizados objetos convexos de 3 a 8 vértices (em 2D). Cada cenário variou de 2 até 100 objetos móveis, gerando colisões dinâmicas com rotações e translações aleatórias.
+
+Os tempos médios de detecção e a taxa de acertos foram medidos com e sem a utilização de uma etapa de Broad Phase baseada em grade uniforme.
+
+\begin{itemize}
+	\item O algoritmo SAT demonstrou desempenho satisfatório em colisões bidimensionais com poucos vértices.
+	\item A introdução da \textit{Broad Phase} reduziu significativamente o número de pares testados na \textit{Narrow Phase}, resultando em ganho médio de até 65\% em desempenho.
+\end{itemize}
+
+\subsection*{Experimento 2 — Simulação Multi-Threaded}
+
+O terceiro experimento avaliou os benefícios do uso de concorrência na simulação física. A implementação utilizou a API \textit{Web Workers} para distribuir a atualização das partículas e as verificações de colisão entre múltiplas threads.
+
+A execucação da física em uma thread separada apresentou estabilidade na renderização.
+
+\subsection*{Experimento 3 - Comparação Com Box2D}
+
+
+
+\section{Resultados e Discussão}
+
+Os resultados obtidos indicam que o método de \citeonline{jakobsen2001advanced} apresenta um bom equilíbrio entre estabilidade e simplicidade de implementação, sendo especialmente adequado para simulações de tecidos e cadeias articuladas em tempo real.
+
+Os algoritmos SAT e GJK apresentaram comportamentos complementares: o SAT mostrou-se mais simples e eficiente em 2D, enquanto o GJK foi superior para colisões tridimensionais complexas. A combinação de ambos na \textit{Narrow Phase}, precedida pela otimização em grade uniforme na \textit{Broad Phase}, resultou em ganhos expressivos de desempenho sem perda significativa de precisão.
+
+A utilização de múltiplas threads proporcionou melhorias significativas na taxa de atualização da simulação, especialmente em cenários densos com mais de 100 corpos dinâmicos. O gráfico da Figura ilustra a relação entre número de threads e o ganho de desempenho observado.
+
+\textbf{INSERIR FIGURA}
+
