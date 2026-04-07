@@ -78,7 +78,7 @@ OBBs geralmente oferecem melhor ajuste, especialmente para objetos alongados ou 
 
 O fecho convexo de um conjunto finito de pontos $p$ é definido como a menor região convexa que contém todos os pontos em $p$, sendo frequentemente utilizado como um objeto delimitador. Determinar o fecho convexo é um problema recorrente em computação geométrica, especialmente quando se deseja organizar pontos em estruturas mais simples ou acelerar operações posteriores, como testes de colisão.
 
-Existem vários algoritmos, entre os quais o \textit{Quickhull} é um algoritmo bastante conhecido para o cálculo do fecho convexo de um conjunto finito de pontos em qualquer dimensão, adotando uma estratégia de divisão e conquista semelhante ao \textit{quicksort} \cite{barber1996quickhull}.
+Existem vários algoritmos, entre os quais o \textit{Quickhull}, que é um algoritmo bastante conhecido para o cálculo do fecho convexo de um conjunto finito de pontos em qualquer dimensão, adotando uma estratégia de divisão e conquista semelhante ao \textit{quicksort} \cite{barber1996quickhull}.
 
 O Quickhull parte de um conjunto de pontos $S$ e constrói o polígono (ou poliedro) convexo que os contém.  O processo para 2 dimensões é ilustrado na Figura~\ref{fig:quickhull_2d} e pode ser descrito em linhas gerais como no Algoritmo~\ref{alg:quickhull_2d}.
 \begin{algorithm}[htb]
@@ -108,9 +108,9 @@ Apresenta complexidade média $O(n \log n)$ em 2D, podendo chegar a $O(n^2)$ em 
 
 Em sistemas de simulação física com muitos objetos, o custo computacional da detecção de colisão pode rapidamente tornar-se inviável. Uma abordagem ingênua, baseada na verificação de todos os pares possíveis de objetos, apresenta complexidade $O(n^2)$, inviável mesmo para quantidades moderadas de entidades dinâmicas. Observa-se, entretanto, que em cenários realistas apenas uma pequena fração dos objetos encontra-se efetivamente próxima o suficiente para colidir em um dado instante. A partir dessa constatação, a detecção de colisão é tradicionalmente decomposta em duas etapas conceitualmente distintas: filtragem (\textit{Broad Phase}) e refinamento (\textit{Narrow Phase}).
 
-A etapa de refinamento tem como objetivo reduzir drasticamente o número de pares candidatos à colisão por meio de testes conservadores e de baixo custo computacional. Nessa fase, não se busca determinar com exatidão se dois objetos colidem, mas apenas descartar, com segurança, aqueles pares cuja colisão é geometricamente impossível. Para isso, empregam-se objetos delimitadores simples, como caixas alinhadas aos eixos, em conjunto com estruturas de localização espacial que exploram a coerência espacial da cena. A premissa fundamental é que objetos só podem interagir se estiverem suficientemente próximos.
+A etapa de filtragem tem como objetivo reduzir drasticamente o número de pares candidatos à colisão por meio de testes conservadores e de baixo custo computacional. Nessa fase, não se busca determinar com exatidão se dois objetos colidem, mas apenas descartar, com segurança, aqueles pares cuja colisão é geometricamente impossível. Para isso, empregam-se objetos delimitadores simples, como caixas alinhadas aos eixos, em conjunto com estruturas de localização espacial que exploram a coerência espacial da cena. A premissa fundamental é que objetos só podem interagir se estiverem suficientemente próximos.
 
-As técnicas de partição espacial constituem um dos principais instrumentos da refinamento. Essas técnicas subdividem o domínio contínuo da simulação em regiões menores, tipicamente convexas, cada uma associada a um conjunto de referências aos objetos que nela se encontram total ou parcialmente. Dois objetos só podem colidir se compartilharem ao menos uma dessas regiões, o que reduz significativamente o número de testes de pares necessários. Tal redução, embora dependente da distribuição espacial dos objetos, permite alcançar tempo esperado próximo de $O(n)$ ou $O(n \log n)$ em cenários bem comportados.
+As técnicas de partição espacial constituem um dos principais instrumentos da etapa de refinamento. Essas técnicas subdividem o domínio contínuo da simulação em regiões menores, tipicamente convexas, cada uma associada a um conjunto de referências aos objetos que nela se encontram total ou parcialmente. Dois objetos só podem colidir se compartilharem ao menos uma dessas regiões, o que reduz significativamente o número de testes de pares necessários. Tal redução, embora dependente da distribuição espacial dos objetos, permite alcançar tempo esperado próximo de $O(n)$ ou $O(n \log n)$ em cenários bem comportados.
 
 A literatura apresenta diversas estruturas de dados voltadas à organização espacial, incluindo abordagens hierárquicas como \textit{Quadtrees}, \textit{Octrees}, \textit{Binary Space Partitioning Trees} (BSP), \textit{K-d Trees} e \textit{Ball Trees}. As grades uniformes (\textit{Uniform Grids}) constituem um esquema muito usado de subdivisão espacial. 
 
@@ -130,13 +130,13 @@ $$
 i = \left\lfloor \frac{x}{C} \right\rfloor, \quad
 j = \left\lfloor \frac{y}{C} \right\rfloor,
 $$
-onde $C$ representa o tamanho da célula. Como neste trabalho um objeto é representado por um conjunto de pontos, não temos acesso direto ao seu centro, é calculado as coordenadas de todas as células interceptadas por sua AABB, garantindo a propriedade conservadora da refinamento.
+onde $C$ representa o tamanho da célula. Como neste trabalho um objeto é representado por um conjunto de pontos, não temos acesso direto ao seu centro. Portanto, são calculadas as coordenadas de todas as células interceptadas por sua AABB, garantindo a propriedade conservadora do refinamento.
 
 As coordenadas são linearizadas em uma chave única da célula (\textit{cell key}) através de um mapeamento linear simples:
-$$Key_{cell} = i + j \times C$$
-e os pares $(Key_{cell}, Index_{obj})$ são salvos num array, onde $Index_{obj}$ representa o índice do objeto no array original ou referência da memória.
+$$Key_{cell} = i + j \times ncol$$
+onde $ncol$ é o número dec colunas da grade. Os pares $(Key_{cell}, Index_{obj})$ são salvos num array, onde $Index_{obj}$ representa o índice do objeto no array original ou referência ao objeto na memória.
 
-Uma vez construída a grade, a refinamento consiste em ordenar os pares pela chave da célula. Nessa etapa pode-se utilizar diversos algoritmos de ordenação encontrados na literatura como o \textit{Radix Sort}. Neste trabalho será usado o algoritmo de ordenação nativo do navegador que depende da implementação do interpretador javascript, como TimSort para o V8 (Google Chrome) ou o MergeSort para o SpiderMonkey (Mozilla Firefox).
+Uma vez construída a grade, a filtragem consiste em ordenar os pares pela chave da célula. Nessa etapa pode-se utilizar diversos algoritmos de ordenação encontrados na literatura como o \textit{Radix Sort}. Neste trabalho será usado o algoritmo de ordenação nativo do navegador que depende da implementação do interpretador javascript, como TimSort para o V8 (Google Chrome) ou o MergeSort para o SpiderMonkey (Mozilla Firefox).
 
 Após a ordenação, os objetos que compartilham a mesma célula aparecem em posições contíguas no array, o quê favorece a localidade espacial e temporal, menos \textit{cache misses} e \textit{page faults}. A partir dessa organização, é possível gerar os pares candidatos à colisão percorrendo o array ordenado e agrupando os objetos por célula. Para evitar testes redundantes, é necessário eliminar duplicatas, se dois objetos A e B caem na mesma célula é preciso testar apenas o par (A, B) e não repetir para o par (B, A). Essa etapa é essencial para preservar os ganhos de desempenho proporcionados pela filtragem espacial. 
 
@@ -153,13 +153,13 @@ O desempenho de métodos baseados em grade uniforme é fortemente influenciado p
 \end{enumerate}
 Assim, a adoção de uma grade uniforme não constitui uma solução universal, mas uma decisão arquitetural dependente das características da cena simulada.
 
-Ao término da refinamento, obtém-se um conjunto $P$ de pares candidatos à colisão, com redução significativa do custo computacional em relação ao método quadrático. Ainda assim, no pior caso, quando muitos objetos se concentram em uma única célula, a complexidade pode degradar novamente para $O(n^2)$, evidenciando o caráter heurístico dessa etapa.
+Ao término da filtragem, obtém-se um conjunto $P$ de pares candidatos a colisão, com redução significativa do custo computacional em relação ao método quadrático. Ainda assim, no pior caso, quando muitos objetos se concentram em uma única célula, a complexidade pode degradar novamente para $O(n^2)$, evidenciando o caráter heurístico dessa etapa.
 
-A etapa de refinamento realiza testes geométricos precisos nos pares de candidatos $P$, essa fase é chamada de Narrow Phase. Utiliza-se algoritmos mais sofisticados para determinar se os objetos estão de fato colidindo, como SAT, GJK e EPA, vistos anteriormente. Essa fase nem sempre é obrigatória pois, sua aplicação pode se tratar de objetos retangulares que caibam justamente nas dimensões de sua caixa delimitadora.
+A etapa de refinamento realiza testes geométricos precisos nos pares de candidatos $P$, essa fase é chamada de Narrow Phase. Utiliza-se algoritmos mais sofisticados para determinar se os objetos estão de fato colidindo, como SAT, GJK e EPA, vistos anteriormente. %Essa fase nem sempre é obrigatória pois, sua aplicação pode se tratar de objetos retangulares que caibam justamente nas dimensões de sua caixa delimitadora.
 
 \section{Como determinar o intervalo de integração da física}
 
-Em física é preciso estabelecer um valor para o passo de tempo, normalmente chamado de dt (do inglês, \textit{Delta Time}). Isso depende muito, se o seu problema tiver muitos objetos e restrito ao tempo, usa-se um dt alto, mas se não estiver restrito ao tempo usa-se o melhor dt possível para obter uma simulação suave. Em muitos casos não é interessante usar todo tempo da máquina para simulação física, mas também para renderização.
+Em física é preciso estabelecer um valor para o passo de tempo, normalmente chamado de $dt$ (do inglês, \textit{Delta Time}). Isso depende muito, se o seu problema tiver muitos objetos e restrito ao tempo, usa-se um dt alto, mas se não estiver restrito ao tempo usa-se o melhor dt possível para obter uma simulação suave. Em muitos casos não é interessante usar todo tempo da máquina para simulação física, mas também para renderização.
 
 No geral existem dois esquemas de integração física. A forma mais simples é usar uma integração de passo fixo usando sempre o mesmo dt e garante que a simulação seja reprodutível. Outra forma é integração com passo variável, ela é a forma mais comum de realizar integração física pois é sempre computada o mais rápido possível e o dt depende do tempo decorrido do relógio, o problema disso que dependendo da máquina pode fazer mais passos ou menos passos de simulação, em geral fazer mais passos da simulação trás um resultado mais plausível. 
 
