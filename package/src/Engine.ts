@@ -148,12 +148,13 @@ export default class Engine {
             );
             vec3.copy(particle.oldPosition, particle.position);
 
-            const drag = vec3.fromValues(
-                -10 * velocity[0],
-                -10 * velocity[1],
-                0,
-            );
-            const acc = vec3.add(vec3.create(), drag, this.gravity);
+            // const drag = vec3.fromValues(
+            //     -10 * velocity[0],
+            //     -10 * velocity[1],
+            //     0,
+            // );
+            // const acc = vec3.add(vec3.create(), drag, this.gravity);
+            const acc = vec3.clone(this.gravity);
             vec3.scale(acc, acc, dt * dt);
 
             // pos = pos + velocity + acc

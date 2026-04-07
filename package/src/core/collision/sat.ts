@@ -24,7 +24,6 @@ export default function sat(shapeA: PolygonBody, shapeB: PolygonBody) {
             // Ensure axis points from A to B
             const centerA = shapeA.getCenter();
             const centerB = shapeB.getCenter();
-            // const direction = twgl.v3.dot(twgl.v3.subtract(centerB, centerA), axis);
             const direction = vec3.dot(
                 vec3.subtract(vec3.create(), centerB, centerA),
                 axis,

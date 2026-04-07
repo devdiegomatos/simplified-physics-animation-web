@@ -26,15 +26,6 @@ export function epa(A: PolygonBody, B: PolygonBody, simplex: vec3[]) {
         // obtain a new support point in the direction of the edge normal
         const p = support(A, B, e.normal);
 
-        // Se um ponto for duplicado, consideramos que o algoritmo convergiu
-        // e retornamos o resultado da aresta atual, que é o mais preciso.
-        // const duplicate = simplex.some(
-        //     (v) => vec3.squaredDistance(v, p) < TOLERANCE * TOLERANCE,
-        // );
-        // if (duplicate) {
-        //     return { normal: e.normal, depth: e.distance };
-        // }
-
         // check the distance from the origin to the edge against the
         // distance p is along e.normal
         const d = vec3.dot(p, e.normal);

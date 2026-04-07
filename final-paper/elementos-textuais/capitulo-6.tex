@@ -2,7 +2,7 @@
 
 \section{Arquitetura e Implementação}
 
-Foi desenvolvida uma biblioteca em \textit{TypeScript}, responsável pela implementação dos algoritmos de detecção de colisão, sendo esta reutilizada tanto na aplicação de visualização quanto no ambiente de testes. A engine implementada permite a execução em dois modos distintos: utilizando o algoritmo do Teorema do Eixo Separador (SAT) ou a combinação dos algoritmos GJK/EPA.
+Foi desenvolvida uma biblioteca em \textit{TypeScript}, responsável pela implementação dos algoritmos de detecção de colisão, sendo esta reutilizada tanto na aplicação de visualização quanto no ambiente de testes. A engine implementada permite a execução em dois modos distintos: utilizando o algoritmo do Teorema do Eixo Separador (SAT) ou GJK/EPA.
 
 A arquitetura do sistema foi organizada de forma independente a visualização, separando a lógica geométrica, os algoritmos de detecção e resposta a colisão da camada de visualização, sendo esta responsabilidade do usuário. Essa abordagem favorece a reutilização de código e facilita a comparação entre diferentes estratégias de detecção de colisão.
 
@@ -52,22 +52,23 @@ As métricas analisadas incluem o número de colisões detectadas e o tempo méd
 
 Os experimentos realizados permitem analisar o impacto das diferentes abordagens de detecção de colisão e estratégias de organização espacial no desempenho do sistema.
 
-Observou-se que o aumento do número de objetos resulta em crescimento significativo do tempo de execução, especialmente nos casos em que não há utilização de estruturas de \textit{broad-phase}. Isso ocorre devido ao aumento do número de pares de objetos a serem testados, o que impacta diretamente a complexidade computacional.
+Observou-se que o aumento do número de objetos resulta em crescimento significativo do tempo de execução, especialmente nos casos em que não há utilização de estruturas na fase de filtragem. Isso ocorre devido ao aumento do número de pares de objetos a serem testados, o que impacta diretamente a complexidade computacional.
 
 A utilização de uma grade uniforme mostrou-se eficaz na redução do número de testes de colisão necessários, resultando em melhorias substanciais no desempenho, tanto para o SAT quanto para o GJK/EPA.
 
-Em relação à comparação entre algoritmos, os resultados indicam que o GJK/EPA apresenta desempenho competitivo em relação ao SAT, especialmente em cenários com maior complexidade geométrica. Essa observação sugere que o custo adicional da construção iterativa do simplex é compensado pela eficiência na verificação de colisões em objetos convexos.
+Em relação à comparação entre algoritmos, os resultados indicam que o GJK/EPA apresenta desempenho competitivo em relação ao SAT. Essa observação sugere que o custo adicional da construção iterativa do simplex é compensado pela eficiência na verificação de colisões em objetos convexos.
 
 Além disso, a métrica de número de colisões verdadeiras manteve-se consistente entre os diferentes métodos, indicando que ambas as abordagens produzem resultados corretos do ponto de vista geométrico.
 
 \section{Discussão dos Resultados}
 
-Os resultados obtidos indicam que a escolha da estratégia de \textit{broad-phase} possui impacto mais significativo no desempenho geral do sistema do que a escolha do algoritmo de \textit{narrow-phase}. A utilização de uma grade uniforme reduz drasticamente o número de verificações necessárias, tornando o sistema escalável para um maior número de objetos.
+Os resultados obtidos indicam que, em um ambiente 2D, a escolha da estratégia de filtragem possui impacto mais significativo no desempenho geral do sistema do que a escolha do algoritmo de refinamento. A utilização de uma grade uniforme reduz drasticamente o número de verificações necessárias, tornando o sistema escalável para um maior número de objetos.
 
-A comparação entre SAT e GJK/EPA mostra que ambos os algoritmos são adequados para detecção de colisão entre objetos convexos, porém apresentam características distintas. O SAT possui implementação mais direta, enquanto o GJK/EPA oferece maior flexibilidade e extensibilidade, especialmente quando informações adicionais como profundidade de penetração são necessárias.
+A comparação entre SAT e GJK/EPA mostra que ambos os algoritmos são adequados para detecção de colisão entre objetos convexos, porém apresentam características distintas. O SAT possui implementação mais direta, enquanto o GJK/EPA oferece maior flexibilidade e extensibilidade.
 
+% Comentar sobre caso do tamanho do objeto ser igual ao tamanho da célula da grade.
 Observou-se também que, em cenários com alta densidade de objetos, o desempenho tende a degradar de forma mais acentuada, evidenciando a importância de estruturas auxiliares para particionamento espacial.
 
-De forma geral, os testes indicam que a combinação de GJK/EPA com uma estratégia eficiente de \textit{broad-phase} constitui uma abordagem robusta e eficiente para detecção de colisões em simulações interativas.
+De forma geral, os testes indicam que a combinação de GJK/EPA com uma estratégia eficiente de filtragem constitui uma abordagem robusta e eficiente para detecção de colisões em simulações interativas.
 
 Esses resultados apontam para a viabilidade da utilização dos algoritmos estudados em aplicações de tempo real, desde que acompanhados de técnicas adequadas de otimização espacial.
