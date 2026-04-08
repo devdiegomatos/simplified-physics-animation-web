@@ -121,23 +121,7 @@ O EPA é um algoritmo iterativo em que, para cada etapa da iteração, seleciona
 \end{figure}
 
 O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até encontrar a face da fronteira do CSO mais próxima da origem. A distância $\delta$ da origem a essa face define a profundidade de penetração, enquanto a normal $\hat{n}$ à face define a direção de separação. A tolerância $\epsilon$ (ex: $10^{-4}$) e o limite de iterações são cruciais para evitar loops infinitos em casos de precisão numérica flutuante ou formas curvas aproximadas.
-% \begin{algorithm}[htb]
-%     \caption{EPA}
-%     \label{alg:epa}
-%     \KwIn{Simplex $Q$ (retornado pelo GJK em caso de colisão)}
-%     \KwOut{$\hat{n}$, $\delta$}
 
-%     \While{iterações $<$ MAX\_ITER}{
-%         $e \leftarrow$ face do politopo mais próxima da origem\;
-%         $p \leftarrow$ ponto de suporte na direção da normal de $e$\;
-%         $\delta \leftarrow p \cdot \hat{n}(e)$\;
-%         \If{$\delta - \|e\| < \epsilon$}{
-%             \KwRet{$\hat{n}(e),\; \delta$}
-%         }
-        
-% 		$Q \leftarrow \{ Q \cup p \}$
-%     }
-% \end{algorithm}
 \begin{algorithm}[htb]
     \caption{EPA}
     \label{alg:epa}
@@ -155,6 +139,8 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
         Remover a aresta $e$ de $Q$ \\
         Inserir as arestas $(\vec v_i, \vec w)$ e $(\vec w, \vec v_j)$ em $Q$ \\
     }
+
+	\KwRet{$\hat{n}_e, \delta$}
 \end{algorithm}
 
 \section{Limitações}
@@ -164,7 +150,7 @@ Ao adotar métodos simplificados, abre-se mão de características essenciais de
 	\item Ausência de conservação precisa de energia e momento, o que reduz o realismo de certas interações.
 	\item Incapacidade de simular materiais complexos (ex.: fricção anisotrópica, torques realistas, elasticidade avançada).
 	\item Dependência de parâmetros empíricos, sem interpretação física clara.
-	\item Menor robustez para geometrias arbitrárias, especialmente polígonos côncavos ou mal escalonados.
+	% \item Menor robustez para geometrias arbitrárias, especialmente polígonos côncavos ou mal escalonados.
 	\item Dificuldade de lidar com sistemas altamente conectados (estruturas rígidas, máquinas, esqueletos).
 \end{itemize}
 Essas limitações não invalidam o uso das técnicas, mas reforçam a necessidade do uso da aplicação a cenários onde a prioridade é a responsividade, e não a precisão física.

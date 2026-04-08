@@ -76,7 +76,7 @@ OBBs geralmente oferecem melhor ajuste, especialmente para objetos alongados ou 
 
 \subsection*{Fecho Convexo}
 
-O fecho convexo de um conjunto finito de pontos $p$ é definido como a menor região convexa que contém todos os pontos em $p$, sendo frequentemente utilizado como um objeto delimitador. Determinar o fecho convexo é um problema recorrente em computação geométrica, especialmente quando se deseja organizar pontos em estruturas mais simples ou acelerar operações posteriores, como testes de colisão.
+O fecho convexo de um conjunto finito de pontos $P$ é definido como a menor região convexa que contém todos os pontos em $P$, sendo frequentemente utilizado como um objeto delimitador. Determinar o fecho convexo é um problema recorrente em computação geométrica, especialmente quando se deseja organizar pontos em estruturas mais simples ou acelerar operações posteriores, como testes de colisão.
 
 Existem vários algoritmos, entre os quais o \textit{Quickhull}, que é um algoritmo bastante conhecido para o cálculo do fecho convexo de um conjunto finito de pontos em qualquer dimensão, adotando uma estratégia de divisão e conquista semelhante ao \textit{quicksort} \cite{barber1996quickhull}.
 
@@ -95,7 +95,7 @@ O Quickhull parte de um conjunto de pontos $S$ e constrói o polígono (ou polie
 	Repita recursivamente os dois passos anteriores nas duas linhas formadas pelos dois novos lados do triângulo. \\
 	O processo termina quando todos os subconjuntos estão vazios.
 \end{algorithm}
-Apresenta complexidade média $O(n \log n)$ em 2D, podendo chegar a $O(n^2)$ em casos degenerados. Em 3D, adapta-se a construções poliedrais mais complexas, mantendo o mesmo princípio recursivo.
+Apresenta complexidade média $O(n \log n)$ em 2D, assumindo uma distribuição uniforme dos pontos, podendo chegar a $O(n^2)$ em casos degenerados. Em 3D, adapta-se a construções poliedrais mais complexas, mantendo o mesmo princípio recursivo.
 
 \begin{figure}[htb]
     \centering
@@ -110,7 +110,7 @@ Em sistemas de simulação física com muitos objetos, o custo computacional da 
 
 A etapa de filtragem tem como objetivo reduzir drasticamente o número de pares candidatos à colisão por meio de testes conservadores e de baixo custo computacional. Nessa fase, não se busca determinar com exatidão se dois objetos colidem, mas apenas descartar, com segurança, aqueles pares cuja colisão é geometricamente impossível. Para isso, empregam-se objetos delimitadores simples, como caixas alinhadas aos eixos, em conjunto com estruturas de localização espacial que exploram a coerência espacial da cena. A premissa fundamental é que objetos só podem interagir se estiverem suficientemente próximos.
 
-As técnicas de partição espacial constituem um dos principais instrumentos da etapa de refinamento. Essas técnicas subdividem o domínio contínuo da simulação em regiões menores, tipicamente convexas, cada uma associada a um conjunto de referências aos objetos que nela se encontram total ou parcialmente. Dois objetos só podem colidir se compartilharem ao menos uma dessas regiões, o que reduz significativamente o número de testes de pares necessários. Tal redução, embora dependente da distribuição espacial dos objetos, permite alcançar tempo esperado próximo de $O(n)$ ou $O(n \log n)$ em cenários bem comportados.
+As técnicas de partição espacial constituem um dos principais instrumentos da etapa de filtragem. Essas técnicas subdividem o domínio contínuo da simulação em regiões menores, tipicamente convexas, cada uma associada a um conjunto de referências aos objetos que nela se encontram total ou parcialmente. Dois objetos só podem colidir se compartilharem ao menos uma dessas regiões, o que reduz significativamente o número de testes de pares necessários. Tal redução, embora dependente da distribuição espacial dos objetos, permite alcançar tempo esperado próximo de $O(n)$ ou $O(n \log n)$ em cenários bem comportados.
 
 A literatura apresenta diversas estruturas de dados voltadas à organização espacial, incluindo abordagens hierárquicas como \textit{Quadtrees}, \textit{Octrees}, \textit{Binary Space Partitioning Trees} (BSP), \textit{K-d Trees} e \textit{Ball Trees}. As grades uniformes (\textit{Uniform Grids}) constituem um esquema muito usado de subdivisão espacial. 
 
@@ -130,7 +130,7 @@ $$
 i = \left\lfloor \frac{x}{C} \right\rfloor, \quad
 j = \left\lfloor \frac{y}{C} \right\rfloor,
 $$
-onde $C$ representa o tamanho da célula. Como neste trabalho um objeto é representado por um conjunto de pontos, não temos acesso direto ao seu centro. Portanto, são calculadas as coordenadas de todas as células interceptadas por sua AABB, garantindo a propriedade conservadora do refinamento.
+onde $C$ representa o tamanho da célula. Como neste trabalho um objeto é representado por um conjunto de pontos, não temos acesso direto ao seu centro. Portanto, são calculadas as coordenadas de todas as células interceptadas por sua AABB, garantindo a propriedade conservadora da filtragem.
 
 As coordenadas são linearizadas em uma chave única da célula (\textit{cell key}) através de um mapeamento linear simples:
 $$Key_{cell} = i + j \times ncol$$
@@ -138,11 +138,11 @@ onde $ncol$ é o número dec colunas da grade. Os pares $(Key_{cell}, Index_{obj
 
 Uma vez construída a grade, a filtragem consiste em ordenar os pares pela chave da célula. Nessa etapa pode-se utilizar diversos algoritmos de ordenação encontrados na literatura como o \textit{Radix Sort}. Neste trabalho será usado o algoritmo de ordenação nativo do navegador que depende da implementação do interpretador javascript, como TimSort para o V8 (Google Chrome) ou o MergeSort para o SpiderMonkey (Mozilla Firefox).
 
-Após a ordenação, os objetos que compartilham a mesma célula aparecem em posições contíguas no array, o quê favorece a localidade espacial e temporal, menos \textit{cache misses} e \textit{page faults}. A partir dessa organização, é possível gerar os pares candidatos à colisão percorrendo o array ordenado e agrupando os objetos por célula. Para evitar testes redundantes, é necessário eliminar duplicatas, se dois objetos A e B caem na mesma célula é preciso testar apenas o par (A, B) e não repetir para o par (B, A). Essa etapa é essencial para preservar os ganhos de desempenho proporcionados pela filtragem espacial. 
+Após a ordenação, os objetos que compartilham a mesma célula aparecem em posições contíguas no array, o quê favorece a localidade espacial e temporal, menos \textit{cache misses} e \textit{page faults}. A partir dessa organização, é possível gerar os pares candidatos à colisão percorrendo o array ordenado e agrupando os objetos por célula. Para evitar testes redundantes, é necessário eliminar duplicatas, se dois objetos A e B caem na mesma célula ou se um objeto é grande suficiente para interceptar múltiplas células, é preciso testar apenas o par (A, B) e não repetir para o par (B, A). Essa etapa é essencial para preservar os ganhos de desempenho proporcionados pela filtragem espacial. 
 
 Essa abordagem permite armazenar apenas as células efetivamente ocupadas, reduzindo o consumo de memória e permitindo a simulação em espaços conceitualmente ilimitados.
 
-Em ambientes dinâmicos, nos quais objetos se movem continuamente e podem ser criados ou removidos, a manutenção incremental da grade torna-se um aspecto crítico. Embora seja possível atualizar apenas as células afetadas por cada objeto em movimento, essa abordagem exige controle adicional e estruturas auxiliares. Neste trabalho, opta-se deliberadamente por uma estratégia mais simples: a grade é completamente reinicializada a cada passo de tempo. Essa decisão representa um trade-off arquitetural, privilegiando simplicidade e previsibilidade de execução em detrimento de possíveis otimizações incrementais.
+Em ambientes dinâmicos, nos quais objetos se movem continuamente e podem ser criados ou removidos, a manutenção incremental da estrutura espacial torna-se um aspecto crítico. Embora seja possível atualizar apenas os elementos afetados por cada objeto em movimento, essa abordagem exige controle adicional e estruturas auxiliares. Neste trabalho, opta-se deliberadamente por uma estratégia mais simples: a estrutura é reconstruída a cada passo de tempo a partir de um array linear, cujo conteúdo é esvaziado (por exemplo, via ajuste de seu tamanho lógico) e preenchido novamente com base na ordenação das chaves de célula. Essa decisão representa um trade-off arquitetural, privilegiando simplicidade e previsibilidade de execução em detrimento de possíveis otimizações incrementais.
 
 O desempenho de métodos baseados em grade uniforme é fortemente influenciado pela escolha do tamanho da célula. Idealmente, cada objeto deveria ocupar aproximadamente uma única célula; nesse caso, em duas dimensões, um objeto pode interceptar no máximo quatro células adjacentes. Segundo \citeonline{ericson2004real}, escolhas inadequadas para esse parâmetro podem degradar significativamente o desempenho, destacando-se quatro fatores principais:
 \begin{enumerate}
@@ -188,7 +188,7 @@ A necessidade de mecanismos de sincronização, como travas (\textit{locks}), op
 
 Outro aspecto relevante é o não-determinismo introduzido pela execução concorrente. A ordem de escalonamento das threads pode variar entre execuções, levando a resultados físicos ligeiramente diferentes mesmo sob condições iniciais idênticas. Esse comportamento dificulta a depuração, a reprodução de simulações e a implementação de funcionalidades como \textit{replays} ou sincronização em aplicações distribuídas.
 
-Por essas razões, muitas engines físicas modernas optam por paralelizar apenas etapas bem definidas e fracamente acopladas da simulação, como a detecção de colisão na fase de refinamento, a resolução de colisões na fase de refinamento e a resposta a colisão em um único thread lógico.
+Por essas razões, muitas engines físicas modernas optam por paralelizar apenas etapas bem definidas e fracamente acopladas da simulação, como a detecção de colisão na fase de filtragem, a resolução de colisões na fase de refinamento e a resposta a colisão em um único thread lógico.
 
 Nem todo paralelismo está associado à execução em múltiplas threads. O paralelismo de dados, explorado por meio de instruções SIMD (\textit{Single Instruction, Multiple Data}), permite aplicar a mesma operação a múltiplos elementos simultaneamente dentro de um único fluxo de execução. Esse modelo é particularmente adequado para etapas da simulação física que envolvem operações homogêneas sobre grandes conjuntos de dados, como a integração temporal das posições, a atualização de velocidades implícitas e testes simples de colisão.
 
