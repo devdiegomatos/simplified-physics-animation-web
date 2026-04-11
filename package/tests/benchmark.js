@@ -11,26 +11,26 @@ import {
 import * as utils from './utils.js';
 
 const testCases = [
-    // {
-    //     worldBoundings: 1000,
-    //     broadPhaseMode: BroadPhaseMode.Naive,
-    //     collisionDetection: CollisionDetectionMode.Sat,
-    // },
+    {
+        worldBoundings: 1000,
+        broadPhaseMode: BroadPhaseMode.Naive,
+        collisionDetection: CollisionDetectionMode.Sat,
+    },
     {
         worldBoundings: 1000,
         broadPhaseMode: BroadPhaseMode.GridSpatialPartition,
         collisionDetection: CollisionDetectionMode.Sat,
     },
-    // {
-    //     worldBoundings: 1000,
-    //     broadPhaseMode: BroadPhaseMode.Naive,
-    //     collisionDetection: CollisionDetectionMode.GjkEpa,
-    // },
-    // {
-    //     worldBoundings: 1000,
-    //     broadPhaseMode: BroadPhaseMode.GridSpatialPartition,
-    //     collisionDetection: CollisionDetectionMode.GjkEpa,
-    // },
+    {
+        worldBoundings: 1000,
+        broadPhaseMode: BroadPhaseMode.Naive,
+        collisionDetection: CollisionDetectionMode.GjkEpa,
+    },
+    {
+        worldBoundings: 1000,
+        broadPhaseMode: BroadPhaseMode.GridSpatialPartition,
+        collisionDetection: CollisionDetectionMode.GjkEpa,
+    },
 ];
 
 function buildTestName(test) {
@@ -119,7 +119,7 @@ function main() {
 
     for (let i = 0; i < testCases.length; i++) {
         const test = testCases[i];
-        for (let objects = 1000; objects <= 10_000; objects += 1000) {
+        for (let objects = 1000; objects <= 5_000; objects += 1000) {
             benchmark(test, objects);
         }
     }

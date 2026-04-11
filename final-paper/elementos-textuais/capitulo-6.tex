@@ -1,74 +1,174 @@
 \chapter{Implementação e Avaliação Experimental}
 
+Este capítulo apresenta a implementação do sistema desenvolvido e os experimentos conduzidos com o objetivo de avaliar seu desempenho, escalabilidade e corretude geométrica. Em particular, busca-se analisar o impacto de diferentes estratégias nas etapas de \textit{broad-phase} e \textit{narrow-phase}, bem como comparar os algoritmos SAT e GJK/EPA em um ambiente de execução web, no qual restrições de desempenho e responsividade são relevantes.
+
+Os experimentos foram realizados em um computador com as seguintes especificações:
+\begin{itemize}
+	\item Processador: AMD Ryzen 5 5500U
+	\item Placa de Vídeo: AMD Radeon Vega 7 (integrada)
+	\item Memória RAM: 24 GB DDR4
+	\item Sistema Operacional: Ubuntu 24.04 LTS
+\end{itemize}
+
 \section{Arquitetura e Implementação}
 
-Foi desenvolvida uma biblioteca em \textit{TypeScript}, responsável pela implementação dos algoritmos de detecção de colisão, sendo esta reutilizada tanto na aplicação de visualização quanto no ambiente de testes. A engine implementada permite a execução em dois modos distintos: utilizando o algoritmo do Teorema do Eixo Separador (SAT) ou GJK/EPA.
+Foi desenvolvida uma biblioteca em \textit{TypeScript} responsável pela implementação dos algoritmos de detecção de colisão, sendo reutilizada tanto na aplicação de visualização quanto no ambiente de testes. A engine permite a execução em dois modos distintos: utilizando o algoritmo do Teorema do Eixo Separador (SAT) ou a combinação dos algoritmos GJK/EPA.
 
-A arquitetura do sistema foi organizada de forma independente a visualização, separando a lógica geométrica, os algoritmos de detecção e resposta a colisão da camada de visualização, sendo esta responsabilidade do usuário. Essa abordagem favorece a reutilização de código e facilita a comparação entre diferentes estratégias de detecção de colisão.
+A arquitetura do sistema foi projetada de forma modular, separando a lógica geométrica, os algoritmos de detecção e resposta à colisão e a camada de visualização, delegando esta última à aplicação cliente. Essa separação favorece a reutilização de código e possibilita a comparação direta entre diferentes abordagens de detecção de colisão.
 
-Os objetos convexos são representados como uma lista de vértices ordenados, juntamente com uma lista de restrições. Cada restrição atua sobre um par de partículas, aplicando um processo de relaxamento que permite modelar tanto estruturas rígidas quanto deformáveis. Essa escolha de modelagem possibilita a integração da detecção de colisão com simulações físicas baseadas em partículas.
+Os objetos convexos são representados como listas de vértices ordenados, associadas a um conjunto de restrições. Cada restrição atua sobre um par de partículas, aplicando um processo de relaxamento que permite modelar tanto estruturas rígidas quanto deformáveis. Essa modelagem possibilita a integração da detecção de colisão com simulações físicas baseadas em partículas.
 
 \section{Ambiente de Visualização}
 
-Para facilitar a análise qualitativa do comportamento dos algoritmos, foram desenvolvidas duas aplicações interativas (\textit{demos}), utilizando \textit{Vue.js}, \textit{Vite} e \textit{p5.js}.
+Com o objetivo de permitir a análise qualitativa do comportamento dos algoritmos, foram desenvolvidas duas aplicações interativas (\textit{demos}) utilizando \textit{Vue.js}, \textit{Vite} e \textit{p5.js}.
 
-A primeira demonstração consiste em um ambiente onde múltiplos objetos convexos são inseridos dentro de uma caixa, permitindo observar a dinâmica de colisões em tempo real. Nessa interface, o usuário pode controlar parâmetros relevantes, como a quantidade de objetos, o algoritmo de detecção de colisão utilizado (SAT ou GJK/EPA) e a estratégia de filtragem, incluindo o uso ou não de uma grade uniforme. Veja a Figura~\ref{fig:demo1}.
+A primeira demonstração consiste em um ambiente contendo múltiplos objetos convexos, com número de vértices variando entre 3 e 8, inseridos em uma caixa com obstáculos. Esse cenário permite a observação da dinâmica de colisões em tempo real. A interface possibilita o controle de parâmetros relevantes, como a quantidade de objetos, o algoritmo de detecção de colisão (SAT ou GJK/EPA) e a estratégia de filtragem, incluindo o uso de uma grade uniforme. A Figura~\ref{fig:demo1} ilustra esse ambiente.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\textwidth]{demo1.png}
-    \caption{Fonte: Autor.}
+    \caption{Ambiente de simulação com múltiplos objetos convexos em uma caixa, permitindo a configuração de parâmetros de colisão e filtragem. Fonte: Autor.}
     \label{fig:demo1}
 \end{figure}
 
-A segunda demonstração apresenta simulações de tecidos e treliças, evidenciando a interação entre objetos deformáveis. Nesse cenário, as restrições entre partículas desempenham papel fundamental na manutenção da estrutura dos objetos, enquanto o sistema de colisão garante a interação física entre diferentes elementos. Veja a Figura~\ref{fig:demo2}.
+A segunda demonstração apresenta simulações de tecidos e treliças, evidenciando a interação entre objetos deformáveis. Nesse cenário, as restrições entre partículas são responsáveis pela manutenção estrutural, enquanto o sistema de colisão garante a interação física entre os elementos. A Figura~\ref{fig:demo2} apresenta um exemplo desse ambiente.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\textwidth]{demo2.png}
-    \caption{Fonte: Autor.}
+    \caption{Simulação de estruturas deformáveis, como tecidos e treliças, utilizando restrições entre partículas e detecção de colisão. Fonte: Autor.}
     \label{fig:demo2}
 \end{figure}
 
 \section{Metodologia de Testes}
 
-Os testes foram conduzidos com o objetivo de avaliar o desempenho dos algoritmos implementados sob diferentes configurações, sem a etapa de visualização. A biblioteca nativa javascript de geração de números aleatórios \textit{Math.random} não permite a geração de números pseudoaleatórios com semente fixa. Para garantir a reprodutibilidade dos experimentos, foi utilizada a biblioteca \textit{seedrandom} para geração pseudoaleatória com semente fixa usando.
-
-O primeiro cenário de teste é igual ao primeiro demo (Figura~\ref{fig:demo1}) do ambiente com múltiplos objetos convexos inseridos em uma caixa. Foram variados parâmetros como o número de objetos, o tamanho do espaço de forma a manter constante a densidade de ocupação, de modo a simular diferentes níveis de complexidade.
-
-Para fins de comparação, foram considerados quatro casos distintos:
+Os experimentos foram conduzidos com três objetivos principais:
 \begin{itemize}
-    \item SAT sem estrutura de \textit{broad-phase};
-    \item SAT com grade uniforme;
-    \item GJK/EPA sem estrutura de \textit{broad-phase};
-    \item GJK/EPA com grade uniforme.
+    \item Avaliar o impacto da utilização de uma estrutura de filtragem no desempenho do sistema;
+    \item Comparar o desempenho dos algoritmos SAT e GJK/EPA na fase de refinamento;
+    \item Analisar a escalabilidade das abordagens em função do número de objetos.
+\end{itemize}
+Os testes foram realizados sem a etapa de visualização, a fim de isolar o custo computacional da detecção de colisão. Para garantir a reprodutibilidade dos experimentos, foi utilizada geração pseudoaleatória com semente fixa por meio da biblioteca \textit{seedrandom}, uma vez que a função \textit{Math.random} não permite controle de semente.
+
+O cenário de teste corresponde ao ambiente apresentado na Figura~\ref{fig:demo1}, no qual objetos convexos são posicionados aleatoriamente dentro de uma região delimitada. Foram variados o número de objetos e o tamanho do espaço, de modo a manter aproximadamente constante a densidade de ocupação. Essa estratégia permite avaliar o impacto do crescimento do sistema sem introduzir vieses relacionados à distribuição espacial.
+
+Foram considerados quatro casos experimentais:
+
+\begin{itemize}
+    \item SAT sem fase de filtragem;
+    \item SAT com grade uniforme na fase de filtragem;
+    \item GJK/EPA sem fase de filtragem;
+    \item GJK/EPA com grade uniforme na fase de filtragem.
 \end{itemize}
 
-Em cada cenário, o número de objetos foi incrementado progressivamente, variando de 1000 até 10000, em intervalos de 1000 objetos. Para cada configuração, foram realizadas 180 execuções da engine, sendo computada a média dos resultados obtidos.
+O número de objetos foi variado de 1000 a 10000, em incrementos de 1000. Para cada configuração, foram realizadas 180 execuções independentes, sendo computadas as médias das métricas coletadas.
 
-As métricas analisadas incluem o número de colisões detectadas e o tempo médio de execução, permitindo avaliar tanto a eficiência quanto o comportamento dos algoritmos sob diferentes condições.
+As métricas analisadas incluem o tempo médio de execução, o número de testes de colisão realizados e o número de colisões detectadas, permitindo avaliar tanto o custo computacional quanto a corretude dos algoritmos. Devido à diferença de ordens de grandeza entre os cenários com e sem fase de filtragem, os resultados de testes de colisão são apresentados em escala logarítmica no eixo vertical. Essa abordagem permite a visualização simultânea de todas as configurações, preservando a comparabilidade entre os métodos.
 
 \section{Resultados Experimentais}
 
-Os experimentos realizados permitem analisar o impacto das diferentes abordagens de detecção de colisão e estratégias de organização espacial no desempenho do sistema.
+Os resultados obtidos permitem analisar o comportamento dos algoritmos sob diferentes configurações e validar empiricamente as hipóteses estabelecidas.
 
-Observou-se que o aumento do número de objetos resulta em crescimento significativo do tempo de execução, especialmente nos casos em que não há utilização de estruturas na fase de filtragem. Isso ocorre devido ao aumento do número de pares de objetos a serem testados, o que impacta diretamente a complexidade computacional.
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{comparativo-testes-colisao.png}
+    \caption{Número médio de testes de colisão em função do número de objetos para diferentes configurações: SAT e GJK/EPA, com e sem utilização de grade uniforme. Fonte: Autor.}
+    \label{fig:testes-comparativo}
+\end{figure}
 
-A utilização de uma grade uniforme mostrou-se eficaz na redução do número de testes de colisão necessários, resultando em melhorias substanciais no desempenho, tanto para o SAT quanto para o GJK/EPA.
+A Figura~\ref{fig:testes-comparativo} evidencia o impacto direto da etapa da filtragem na redução do número de testes de colisão. A utilização da grade uniforme reduz drasticamente a quantidade de pares avaliados, refletindo diretamente na melhoria de desempenho observada.
 
-Em relação à comparação entre algoritmos, os resultados indicam que o GJK/EPA apresenta desempenho competitivo em relação ao SAT. Essa observação sugere que o custo adicional da construção iterativa do simplex é compensado pela eficiência na verificação de colisões em objetos convexos.
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{comparativo-tempo-execução.png}
+    \caption{Tempo médio de execução em função do número de objetos para diferentes configurações: SAT e GJK/EPA, com e sem utilização de grade uniforme. Fonte: Autor.}
+    \label{fig:tempo-comparativo}
+\end{figure}
 
-Além disso, a métrica de número de colisões verdadeiras manteve-se consistente entre os diferentes métodos, indicando que ambas as abordagens produzem resultados corretos do ponto de vista geométrico.
+A Figura~\ref{fig:tempo-comparativo} apresenta o tempo médio de execução em função do número de objetos para as diferentes configurações avaliadas. Observa-se que os cenários sem utilização de grade uniforme apresentam crescimento acentuado, compatível com comportamento quadrático, enquanto as abordagens com filtragem demonstram crescimento significativamente mais lento.
 
-\section{Discussão dos Resultados}
+Adicionalmente, nota-se que as curvas correspondentes aos algoritmos SAT e GJK/EPA apresentam comportamento semelhante, indicando que a escolha da estratégia de filtragem possui maior impacto no desempenho global do sistema do que o algoritmo utilizado na fase de refinamento.
 
-Os resultados obtidos indicam que, em um ambiente 2D, a escolha da estratégia de filtragem possui impacto mais significativo no desempenho geral do sistema do que a escolha do algoritmo de refinamento. A utilização de uma grade uniforme reduz drasticamente o número de verificações necessárias, tornando o sistema escalável para um maior número de objetos.
+% Nos cenários sem fase de filtragem, observa-se um crescimento aproximadamente quadrático no número de testes de colisão em função do número de objetos, o que está de acordo com a complexidade $O(n^2)$ esperada para a verificação de todos os pares. Esse comportamento reflete-se diretamente no aumento do tempo de execução, conforme ilustrado nas Figuras~\ref{fig:teste-naive-mode-sat-dt} e~\ref{fig:teste-naive-mode-gjkepa-dt}.
 
-A comparação entre SAT e GJK/EPA mostra que ambos os algoritmos são adequados para detecção de colisão entre objetos convexos, porém apresentam características distintas. O SAT possui implementação mais direta, enquanto o GJK/EPA oferece maior flexibilidade e extensibilidade.
+% \begin{figure}[htb]
+%     \centering
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/naivemode-sat-collision-test.png}
+%         \caption{Número médio de testes de colisão em função do número de objetos utilizando SAT sem filtragem. Fonte: Autor.}
+%         \label{fig:teste-naive-mode-sat-collision}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/naivemode-sat-dt-test.png}
+%         \caption{Tempo médio de execução em função do número de objetos utilizando SAT sem filtragem. Fonte: Autor.}
+%         \label{fig:teste-naive-mode-sat-dt}
+%     \end{minipage}
+% \end{figure}
 
-% Comentar sobre caso do tamanho do objeto ser igual ao tamanho da célula da grade.
-Observou-se também que, em cenários com alta densidade de objetos, o desempenho tende a degradar de forma mais acentuada, evidenciando a importância de estruturas auxiliares para particionamento espacial.
+% Resultados equivalentes são observados para o GJK/EPA, conforme apresentado nas Figuras~\ref{fig:teste-naive-mode-gjkepa-collision} e~\ref{fig:teste-naive-mode-gjkepa-dt}.
 
-De forma geral, os testes indicam que a combinação de GJK/EPA com uma estratégia eficiente de filtragem constitui uma abordagem robusta e eficiente para detecção de colisões em simulações interativas.
+% \begin{figure}[htb]
+%     \centering
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/naivemode-gjkepa-collision-test.png}
+%         \caption{Número médio de testes de colisão em função do número de objetos utilizando GJK/EPA sem filtragem. Fonte: Autor.}
+%         \label{fig:teste-naive-mode-gjkepa-collision}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/naivemode-gjkepa-dt-test.png}
+%         \caption{Tempo médio de execução em função do número de objetos utilizando GJK/EPA sem filtragem. Fonte: Autor.}
+%         \label{fig:teste-naive-mode-gjkepa-dt}
+%     \end{minipage}
+% \end{figure}
 
-Esses resultados apontam para a viabilidade da utilização dos algoritmos estudados em aplicações de tempo real, desde que acompanhados de técnicas adequadas de otimização espacial.
+% A introdução de uma grade uniforme na fase de filtragem reduz significativamente o número de testes de colisão necessários, como mostrado nas Figuras~\ref{fig:teste-grid-mode-sat-collision} e~\ref{fig:teste-grid-mode-gjkepa-collision}. Esse efeito resulta em uma redução substancial no tempo de execução, evidenciando a importância da etapa de \textit{broad-phase}.
+
+% \begin{figure}[htb]
+%     \centering
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/gridmode-sat-collision-test.png}
+%         \caption{Número médio de testes de colisão com utilização de grade uniforme e SAT. Fonte: Autor.}
+%         \label{fig:teste-grid-mode-sat-collision}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/gridmode-sat-dt-test.png}
+%         \caption{Tempo médio de execução com utilização de grade uniforme e SAT. Fonte: Autor.}
+%         \label{fig:teste-grid-mode-sat-dt}
+%     \end{minipage}
+% \end{figure}
+
+% \begin{figure}[htb]
+%     \centering
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/gridmode-gjkepa-collision-test.png}
+%         \caption{Número médio de testes de colisão com utilização de grade uniforme e GJK/EPA. Fonte: Autor.}
+%         \label{fig:teste-grid-mode-gjkepa-collision}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{tests/gridmode-gjkepa-dt-test.png}
+%         \caption{Tempo médio de execução com utilização de grade uniforme e GJK/EPA. Fonte: Autor.}
+%         \label{fig:teste-grid-mode-gjkepa-dt}
+%     \end{minipage}
+% \end{figure}
+
+% Além disso, o número de colisões detectadas manteve-se consistente entre os diferentes métodos, indicando que ambas as abordagens apresentam corretude geométrica equivalente.
+
+Os resultados demonstram que a escolha da estratégia de filtragem possui impacto dominante no desempenho do sistema, superando a influência do algoritmo utilizado na fase de refinamento. A utilização de uma grade uniforme reduz significativamente o número de pares de objetos a serem testados, aproximando o comportamento do sistema de um regime subquadrático.
+
+A comparação entre SAT e GJK/EPA indica que ambos os algoritmos são adequados para detecção de colisão em objetos convexos em duas dimensões, apresentando desempenho semelhante nos cenários avaliados. O GJK/EPA, entretanto, apresenta maior flexibilidade, especialmente quando informações adicionais, como profundidade de penetração, são necessárias.
+
+Observa-se também que, em cenários de alta densidade, o custo computacional cresce rapidamente na ausência de estruturas de filtragem, evidenciando a importância de técnicas de particionamento espacial para aplicações em tempo real.
+
+De forma geral, os resultados indicam que a combinação de algoritmos eficientes na fase de \textit{narrow-phase} com estratégias adequadas de \textit{broad-phase} é essencial para garantir desempenho e escalabilidade em sistemas de detecção de colisão.
