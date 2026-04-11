@@ -7,7 +7,7 @@ import type AABB from './AABB';
 export default class SpatialHashGrid {
     public cells: [number, Body][] = [];
 
-    constructor(protected cellSize: number) {}
+    constructor(protected ncol: number, protected cellSize: number) {}
 
     insert(body: Body) {
         const aabb = body.getAABB();
@@ -19,7 +19,7 @@ export default class SpatialHashGrid {
 
     // A simple hash function to get the cell ID
     getCellKey(cellPosition: vec3): number {
-        return cellPosition[0] + cellPosition[1] * this.cellSize;
+        return cellPosition[0] + cellPosition[1] * this.ncol;
     }
 
     clear() {

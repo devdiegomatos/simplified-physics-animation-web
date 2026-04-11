@@ -60,7 +60,7 @@ export default class Engine {
 
     constructor(public config: Config) {
         if (config.BroadPhase == BroadPhaseMode.GridSpatialPartition) {
-            this.spatialHashGrid = new SpatialHashGrid(config.gridSize);
+            this.spatialHashGrid = new SpatialHashGrid(config.worldBoundings.right[1] / config.gridSize ,config.gridSize);
         }
 
         this.gravity = config.gravity;
@@ -197,7 +197,8 @@ export default class Engine {
     public broadPhase_GridSpatialPartition() {
         if (this.spatialHashGrid === undefined) return;
 
-        const seen = new Set<string>();
+        // const seen = new Set<string>();
+        const seen = new Set<number>();
         const orderedCells = this.spatialHashGrid.cells.sort(
             (a, b) => a[0] - b[0],
         );
@@ -211,8 +212,15 @@ export default class Engine {
 
                 const idA = cellA[1].id;
                 const idB = cellB[1].id;
-                const keyPair = idA < idB ? `${idA}|${idB}` : `${idB}|${idA}`;
-                if (idA === idB || seen.has(keyPair)) continue;
+                if (idA === idB) continue;
+
+                const keyPair =
+                    idA < idB
+                        ? idA + idB * this.bodies.length
+                        : idB + idA * this.bodies.length;
+                if (seen.has(keyPair)) continue;
+                // const keyPair = idA < idB ? `${idA}|${idB}` : `${idB}|${idA}`;
+                // if (idA === idB || seen.has(keyPair)) continue;
 
                 seen.add(keyPair);
 
