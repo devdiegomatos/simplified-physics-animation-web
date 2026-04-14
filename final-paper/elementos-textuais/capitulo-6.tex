@@ -50,23 +50,26 @@ Os experimentos foram conduzidos com três objetivos principais:
     \item Avaliar o impacto da utilização de uma estrutura de filtragem no desempenho do sistema;
     \item Comparar o desempenho dos algoritmos SAT e GJK/EPA na fase de refinamento;
     \item Analisar a escalabilidade das abordagens em função do número de objetos.
+    \item Comparar o desempenho da implementação desenvolvida com a biblioteca \textit{Planck.js},
 \end{itemize}
 Os testes foram realizados sem a etapa de visualização, a fim de isolar o custo computacional da detecção de colisão. Para garantir a reprodutibilidade dos experimentos, foi utilizada geração pseudoaleatória com semente fixa por meio da biblioteca \textit{seedrandom}, uma vez que a função \textit{Math.random} não permite controle de semente.
 
 O cenário de teste corresponde ao ambiente apresentado na Figura~\ref{fig:demo1}, no qual objetos convexos são posicionados aleatoriamente dentro de uma região delimitada. Foram variados o número de objetos e o tamanho do espaço, de modo a manter aproximadamente constante a densidade de ocupação. Essa estratégia permite avaliar o impacto do crescimento do sistema sem introduzir vieses relacionados à distribuição espacial.
 
 Foram considerados quatro casos experimentais:
-
 \begin{itemize}
     \item SAT sem fase de filtragem;
     \item SAT com grade uniforme na fase de filtragem;
     \item GJK/EPA sem fase de filtragem;
     \item GJK/EPA com grade uniforme na fase de filtragem.
 \end{itemize}
-
 O número de objetos foi variado de 1000 a 10000, em incrementos de 1000. Para cada configuração, foram realizadas 180 execuções independentes, sendo computadas as médias das métricas coletadas.
 
 As métricas analisadas incluem o tempo médio de execução, o número de testes de colisão realizados e o número de colisões detectadas, permitindo avaliar tanto o custo computacional quanto a corretude dos algoritmos. Essa abordagem permite a visualização simultânea de todas as configurações, preservando a comparabilidade entre os métodos.
+
+A biblioteca \textit{Planck.js} é um motor de física 2D para JavaScript, reescrito a partir do Box2D, amplamente utilizado no desenvolvimento de jogos digitais. A \textit{Planck.js} emprega uma estrutura de árvore hierárquica dinâmica de volumes delimitadores (AABB) na fase de filtragem, enquanto a detecção de colisão na fase de refinamento baseia-se em algoritmos como GJK e EPA.
+
+Para garantir a comparabilidade dos resultados, foram utilizados cenários equivalentes aos descritos anteriormente, mantendo-se consistentes os parâmetros de número de objetos, distribuição espacial e número de execuções. Devido a forma como a biblioteca é implementando as foi analisada apenas a métrica de tempo médio de execução.
 
 \section{Resultados Experimentais}
 
@@ -90,10 +93,17 @@ A Figura~\ref{fig:testes-comparativo} evidencia o impacto direto da etapa da fil
 
 A Figura~\ref{fig:tempo-comparativo} apresenta o tempo médio de execução em função do número de objetos para as diferentes configurações avaliadas. Observa-se que os cenários sem utilização de grade uniforme apresentam crescimento acentuado, compatível com comportamento quadrático, enquanto as abordagens com filtragem demonstram crescimento significativamente mais lento.
 
-Adicionalmente, nota-se que as curvas correspondentes aos algoritmos SAT e GJK/EPA apresentam comportamento semelhante. Embora o tempo médio do SAT seja levemente inferior ao GJK/EPA, no geral a escolha da estratégia de filtragem possui maior impacto no desempenho global do sistema do que o algoritmo utilizado na fase de refinamento.
-
-A comparação entre SAT e GJK/EPA indica que ambos os algoritmos são adequados para detecção de colisão em objetos convexos em duas dimensões, apresentando desempenho semelhante nos cenários avaliados. O GJK/EPA, entretanto, apresenta maior flexibilidade, especialmente quando informações adicionais, como profundidade de penetração, são necessárias.
+Nota-se que as curvas correspondentes aos algoritmos SAT e GJK/EPA apresentam comportamento semelhante. Embora o tempo médio do SAT seja levemente inferior ao GJK/EPA, no geral a escolha da estratégia de filtragem possui maior impacto no desempenho global do sistema do que o algoritmo utilizado na fase de refinamento.
 
 Observa-se também que, em cenários de alta densidade, o custo computacional cresce rapidamente na ausência de estruturas de filtragem, evidenciando a importância de técnicas de particionamento espacial para aplicações em tempo real.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{comparativo-tempo-execução-planckjs.png}
+    \caption{Tempo médio de execução em função do número de objetos com a biblioteca \textit{Planck.js}. Fonte: Autor.}
+    \label{fig:tempo-comparativo-planckjs}
+\end{figure}
+
+A Figura~\ref{fig:tempo-comparativo-planckjs} apresenta o tempo médio de execução em função do número de objetos para a biblioteca \textit{Planck.js}. Observa-se que o desempenho da \textit{Planck.js} apresenta comportamento consistente com o uso de uma estrutura eficiente na fase de filtragem, evidenciando crescimento controlado mesmo com o aumento do número de objetos. Esse resultado confirma a eficácia do uso de árvores hierárquicas dinâmicas na redução do número de pares de objetos avaliados.
 
 De forma geral, os resultados indicam que a combinação de algoritmos eficientes na fase de \textit{narrow-phase} com estratégias adequadas de \textit{broad-phase} é essencial para garantir desempenho e escalabilidade em sistemas de detecção de colisão.
