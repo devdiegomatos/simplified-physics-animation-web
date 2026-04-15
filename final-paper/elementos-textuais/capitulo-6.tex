@@ -50,9 +50,9 @@ Os experimentos foram conduzidos com três objetivos principais:
     \item Avaliar o impacto da utilização de uma estrutura de filtragem no desempenho do sistema;
     \item Comparar o desempenho dos algoritmos SAT e GJK/EPA na fase de refinamento;
     \item Analisar a escalabilidade das abordagens em função do número de objetos.
-    \item Comparar o desempenho da implementação desenvolvida com a biblioteca \textit{Planck.js},
+    \item Comparar o desempenho da implementação desenvolvida com uma biblioteca comumente usada em jogos. Aqui, usamos a  biblioteca \textit{Planck.js}~\cite{xpto}.
 \end{itemize}
-Os testes foram realizados sem a etapa de visualização, a fim de isolar o custo computacional da detecção de colisão. Para garantir a reprodutibilidade dos experimentos, foi utilizada geração pseudoaleatória com semente fixa por meio da biblioteca \textit{seedrandom}, uma vez que a função \textit{Math.random} não permite controle de semente.
+Os testes foram realizados sem a etapa de visualização, a fim de isolar o custo computacional da detecção de colisão. Para garantir a reprodutibilidade dos experimentos, foi utilizada geração pseudoaleatória com semente fixa por meio da biblioteca \textit{seedrandom}~\cite{xpto}, uma vez que a função \textit{Math.random} não permite controle de semente.
 
 O cenário de teste corresponde ao ambiente apresentado na Figura~\ref{fig:demo1}, no qual objetos convexos são posicionados aleatoriamente dentro de uma região delimitada. Foram variados o número de objetos e o tamanho do espaço, de modo a manter aproximadamente constante a densidade de ocupação. Essa estratégia permite avaliar o impacto do crescimento do sistema sem introduzir vieses relacionados à distribuição espacial.
 
@@ -69,7 +69,7 @@ As métricas analisadas incluem o tempo médio de execução, o número de teste
 
 A biblioteca \textit{Planck.js} é um motor de física 2D para JavaScript, reescrito a partir do Box2D, amplamente utilizado no desenvolvimento de jogos digitais. A \textit{Planck.js} emprega uma estrutura de árvore hierárquica dinâmica de volumes delimitadores (AABB) na fase de filtragem, enquanto a detecção de colisão na fase de refinamento baseia-se em algoritmos como GJK e EPA.
 
-Para garantir a comparabilidade dos resultados, foram utilizados cenários equivalentes aos descritos anteriormente, mantendo-se consistentes os parâmetros de número de objetos, distribuição espacial e número de execuções. Devido a forma como a biblioteca é implementando as foi analisada apenas a métrica de tempo médio de execução.
+Para garantir a comparabilidade dos resultados, foram utilizados cenários equivalentes aos descritos anteriormente, mantendo-se consistentes os parâmetros de número de objetos, distribuição espacial e número de execuções. Devido a forma como a biblioteca \textit{Plank}é implementada, foi analisada apenas a métrica de tempo médio de execução.
 
 \section{Resultados Experimentais}
 

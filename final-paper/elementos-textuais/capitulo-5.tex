@@ -153,9 +153,9 @@ O desempenho de métodos baseados em grade uniforme é fortemente influenciado p
 \end{enumerate}
 Assim, a adoção de uma grade uniforme não constitui uma solução universal, mas uma decisão arquitetural dependente das características da cena simulada.
 
-Ao término da filtragem, obtém-se um conjunto $P$ de pares candidatos a colisão, com redução significativa do custo computacional em relação ao método quadrático. Ainda assim, no pior caso, quando muitos objetos se concentram em uma única célula, a complexidade pode degradar novamente para $O(n^2)$, evidenciando o caráter heurístico dessa etapa.
+Ao término da filtragem, obtém-se um conjunto $P$ de pares candidatos a colisão, com redução significativa do custo computacional em relação ao método quadrático. Ainda assim, no pior caso, quando muitos objetos se concentram em poucas células, a complexidade pode degradar novamente para $O(n^2)$, evidenciando o caráter heurístico dessa etapa.
 
-A etapa de refinamento realiza testes geométricos precisos nos pares de candidatos $P$, essa fase é chamada de Narrow Phase. Utiliza-se algoritmos mais sofisticados para determinar se os objetos estão de fato colidindo, como SAT, GJK e EPA, vistos anteriormente. %Essa fase nem sempre é obrigatória pois, sua aplicação pode se tratar de objetos retangulares que caibam justamente nas dimensões de sua caixa delimitadora.
+A etapa de refinamento realiza testes geométricos precisos nos pares de candidatos em $P$. Essa fase é chamada de Narrow Phase. Utiliza-se algoritmos mais sofisticados para determinar se os objetos estão de fato colidindo, como SAT, GJK e EPA, vistos anteriormente. %Essa fase nem sempre é obrigatória pois, sua aplicação pode se tratar de objetos retangulares que caibam justamente nas dimensões de sua caixa delimitadora.
 
 \section{Como determinar o intervalo de integração da física}
 
