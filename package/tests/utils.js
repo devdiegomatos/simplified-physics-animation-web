@@ -1,13 +1,22 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { vec2 } from 'gl-matrix';
 
 import { PolygonBody, RectangleBody, TriangleBody } from '../dist/bodies.js';
+import { PoissonDiscSampling } from '../dist/index.js';
 export function generateBodies(count, worldDimensions, size) {
+    const poissonSamp = new PoissonDiscSampling(
+        size,
+        vec2.fromValues(worldDimensions, worldDimensions),
+    );
+    const points = poissonSamp.GeneratePoints();
+
     const bodies = [];
 
     for (let i = 0; i < count; i++) {
-        const x = Math.random() * worldDimensions;
-        const y = Math.random() * worldDimensions;
-
+        const point = points[i];
+        const x = point[0];
+        const y = point[1];
+        
         const type = Math.random();
         const isStatic = Math.random() < 0.2 ? true : false;
         let body;

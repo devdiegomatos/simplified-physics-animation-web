@@ -82,12 +82,13 @@ canvas {
 </template>
 
 <script setup lang="ts">
-import { vec3 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
 import { onBeforeUnmount, ref } from 'vue';
 import p5 from 'p5';
 import { PolygonBody, type Body, TriangleBody, RectangleBody } from '@devdiegomatos/liso-engine/bodies';
 import { BroadPhaseMode, CollisionDetectionMode, Engine } from '@devdiegomatos/liso-engine';
 import { createEngineWorker, type MainToWorkerMessage, type WorkerToMainMessage, type ObjectBuilderArgs, ObjectType } from '@devdiegomatos/liso-engine/worker';
+import { PoissonDiscSampling } from '@devdiegomatos/liso-engine'
 import Scene from '@/scenes/Scene';
 import type IScene from '@/scenes/IScene';
 import SceneThreaded from '@/scenes/SceneThreaded';
@@ -103,7 +104,8 @@ const fps = ref(0);
 // Main thread mode variables
 const worldBoundings = 600;
 const gridArea = worldBoundings ** 2;
-let gridSize = Math.sqrt(gridArea / (totalEntities * 3));
+const gridSize = Math.sqrt(gridArea / (totalEntities * Math.PI));
+const poissonSamp = new PoissonDiscSampling(gridSize, vec2.fromValues(worldBoundings, worldBoundings))
 let scene: IScene | null = null;
 
 // Threaded mode variables
@@ -137,6 +139,8 @@ async function setup(p: p5) {
     if (sketchContainer.value === null) return;
 
     p.createCanvas(worldBoundings, worldBoundings).parent(sketchContainer.value);
+
+    const points = poissonSamp.GeneratePoints()
 
     if (threaded && worker) {
         scene = new SceneThreaded();
@@ -191,8 +195,9 @@ async function setup(p: p5) {
         );
 
         for (let i = 0; i < totalEntities; i++) {
-            const x = Math.random() * worldBoundings;
-            const y = Math.random() * worldBoundings;
+            const point = points[i];
+            const x = point[0];
+            const y = point[1];
 
             const type = Math.random();
             const isStatic = Math.random() < 0.2 ? true : false;
@@ -210,6 +215,27 @@ async function setup(p: p5) {
 
             scene.add(body);
         }
+
+        // for (let i = 0; i < totalEntities; i++) {
+        //     const x = Math.random() * worldBoundings;
+        //     const y = Math.random() * worldBoundings;
+
+        //     const type = Math.random();
+        //     const isStatic = Math.random() < 0.2 ? true : false;
+        //     const size = gridSize;
+        //     let body: Body;
+        //     if (type <= 0.25) {
+        //         body = new TriangleBody(x, y, size, isStatic);
+        //     } else if (type <= 0.5) {
+        //         body = new RectangleBody(x, y, size, size / 2, isStatic);
+        //     } else if (type <= 0.75) {
+        //         body = PolygonBody.PolygonBuilder(x, y, size, 5, isStatic);
+        //     } else {
+        //         body = PolygonBody.PolygonBuilder(x, y, size, 6, isStatic);
+        //     }
+
+        //     scene.add(body);
+        // }
     }
 }
 

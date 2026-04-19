@@ -52,7 +52,8 @@ function buildTestName(test) {
 
 function intersectionTest(testCase, objects) {
     const gridArea = testCase.worldBoundings ** 2;
-    const cellSize = Math.sqrt(gridArea / (objects * 5));
+    // const cellSize = Math.sqrt(gridArea / (objects * 5));
+    const cellSize = Math.sqrt(gridArea / (objects * Math.PI));
 
     const engine = new Engine({
         worldBoundings: {
@@ -102,7 +103,7 @@ function intersectionTest(testCase, objects) {
 function benchmark(test, objects) {
     let name = buildTestName(test);
     console.log(`[benchmark] ${name} - ${objects} objetos`);
-    
+
     seedrandom('10000', { global: true });
     const start = performance.now();
 

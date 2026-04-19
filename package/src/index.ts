@@ -4,6 +4,7 @@ import Engine, {
     type Config,
     type Metrics,
 } from './Engine';
+import PoissonDiscSampling from "./PoissonDiscSampling"
 
 export {
     BroadPhaseMode,
@@ -11,4 +12,5 @@ export {
     type Config,
     Engine,
     type Metrics,
+    PoissonDiscSampling
 };
