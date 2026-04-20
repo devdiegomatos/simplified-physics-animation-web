@@ -23,9 +23,9 @@ Este trabalho disponibiliza uma implementação pública com o objetivo de permi
 % O código-fonte da biblioteca desenvolvida, bem como as aplicações de demonstração, encontram-se disponíveis em: \url{}.
 \section{Ambiente de Visualização}
 
-Com o objetivo de permitir a análise qualitativa do comportamento dos algoritmos, foram desenvolvidas duas aplicações interativas (\textit{demos})~\footnote{https://devdiegomatos.github.io/simplified-physics-animation-web/}. utilizando \textit{Vue.js}, \textit{Vite} e \textit{p5.js}
+Com o objetivo de permitir a análise qualitativa do comportamento dos algoritmos, foram desenvolvidas duas aplicações interativas (\textit{demos})~\footnote{https://devdiegomatos.github.io/simplified-physics-animation-web/}, utilizando \textit{Vue.js}, \textit{Vite} e \textit{p5.js}
 
-A primeira demonstração consiste em um ambiente contendo múltiplos objetos convexos, com número de vértices variando entre 3 e 8, inseridos em uma caixa com obstáculos. Esse cenário permite a observação da dinâmica de colisões em tempo real. A interface possibilita o controle de parâmetros relevantes, como a quantidade de objetos, o algoritmo de detecção de colisão (SAT ou GJK/EPA) e a estratégia de filtragem, incluindo o uso de uma grade uniforme. A Figura~\ref{fig:demo1} ilustra esse ambiente.
+A primeira demonstração consiste em um ambiente contendo múltiplos objetos convexos, com número de vértices variando de 3 e 8, inseridos em uma caixa com obstáculos. Esse cenário permite a observação da dinâmica de colisões em tempo real. A interface possibilita o controle de parâmetros relevantes, como a quantidade de objetos, o algoritmo de detecção de colisão (SAT ou GJK/EPA) e a estratégia de filtragem, incluindo o uso de uma grade uniforme. A Figura~\ref{fig:demo1} ilustra esse ambiente.
 
 \begin{figure}[htb]
     \centering
@@ -62,7 +62,7 @@ Os experimentos foram conduzidos com quatro objetivos principais:
 \end{itemize}
 Os testes foram realizados sem a etapa de visualização, a fim de isolar o custo computacional da detecção de colisão. Para garantir a reprodutibilidade dos experimentos, foi utilizada geração pseudoaleatória com semente fixa por meio da biblioteca \textit{seedrandom}~\cite{bau2019seedrandom}, uma vez que a função \textit{Math.random} não permite controle de semente.
 
-O cenário de teste corresponde ao ambiente apresentado na Figura~\ref{fig:demo1}, no qual objetos convexos são posicionados aleatoriamente dentro de uma região delimitada. Foram variados o número de objetos e o tamanho do espaço, de modo a manter aproximadamente constante a densidade de ocupação. Essa estratégia permite avaliar o impacto do crescimento do sistema sem introduzir vieses relacionados à distribuição espacial.
+O cenário de teste corresponde ao ambiente apresentado na Figura~\ref{fig:demo1}, no qual objetos convexos são posicionados aleatoriamente dentro de uma região delimitada. Foram variados o número de objetos e o tamanho do espaço. A geração das posições iniciais segue uma distribuição de Poisson (\textit{Poisson Disk Sampling}), que tem como característica gerar amostras espacialmente uniformes com distância mínima garantida entre pontos e melhorando a estabilidade inicial da simulação~\cite{bridson2007poisson}. Essa propriedade evita a concentração de objetos em regiões específicas e reduz a ocorrência de interpenetrações iniciais, contribuindo para a construção de cenários mais homogêneos e adequados à avaliação do desempenho dos algoritmos de detecção de colisão.
 
 Foram considerados quatro casos experimentais:
 \begin{itemize}
@@ -71,13 +71,13 @@ Foram considerados quatro casos experimentais:
     \item GJK/EPA sem fase de filtragem;
     \item GJK/EPA com grade uniforme na fase de filtragem.
 \end{itemize}
-O número de objetos foi variado de 1000 a 10000, em incrementos de 1000. Para cada configuração, foram realizadas 180 execuções independentes, sendo computadas as médias das métricas coletadas.
+O número de objetos foi variado de 100 a 1000, em incrementos de 100. Para cada configuração, foram realizadas 180 execuções independentes, sendo computadas as médias das métricas coletadas.
 
 As métricas analisadas incluem o tempo médio de execução, o número de testes de colisão realizados e o número de colisões detectadas, permitindo avaliar tanto o custo computacional quanto a corretude dos algoritmos. Essa abordagem permite a visualização simultânea de todas as configurações, preservando a comparabilidade entre os métodos.
 
 A biblioteca \textit{Planck.js} é um motor de física 2D para JavaScript, reescrito a partir do Box2D, amplamente utilizado no desenvolvimento de jogos digitais. A \textit{Planck.js} emprega uma estrutura de árvore hierárquica dinâmica de AABB na fase de filtragem, enquanto a detecção de colisão na fase de refinamento baseia-se em algoritmos como GJK e EPA.
 
-Para garantir a comparabilidade dos resultados, foram utilizados cenários equivalentes aos descritos anteriormente, mantendo-se consistentes os parâmetros de número de objetos, distribuição espacial e número de execuções. Devido a forma como a biblioteca \textit{Planck.js} é implementada, foi analisada apenas a métrica de tempo médio de execução.
+Para garantir a comparabilidade dos resultados, foram utilizados cenários equivalentes aos descritos anteriormente, mantendo-se consistentes os parâmetros de número de objetos, distribuição espacial e número de execuções. Devido à forma como a biblioteca \textit{Planck.js} é implementada, foi analisada apenas a métrica de tempo médio de execução.
 
 \section{Resultados Experimentais}
 
@@ -86,19 +86,28 @@ Os resultados obtidos permitem analisar o comportamento dos algoritmos sob difer
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.85\textwidth]{comparativo-testes-colisao.png}
-    \caption{Número médio de testes de colisão em função do número de objetos com e sem utilização de grade uniforme no refinamento. Fonte: Autor.}
+    \caption{Número médio de testes de colisão em função do número de objetos com e sem utilização de grade uniforme no filtragem. Fonte: Autor.}
     \label{fig:testes-comparativo}
 \end{figure}
 
-A Figura~\ref{fig:testes-comparativo} evidencia o impacto direto da etapa da filtragem na redução do número de testes de colisão. A utilização da grade uniforme reduz drasticamente a quantidade de pares avaliados, refletindo diretamente na melhoria de desempenho observada. O algoritmo de refinamento não é relevante neste teste pois a filtragem é independente. Devido à diferença de ordens de grandeza entre os cenários com e sem fase de filtragem, os resultados são apresentados em escala logarítmica no eixo vertical.
+A Figura~\ref{fig:testes-comparativo} evidencia o impacto direto da etapa da filtragem na redução do número de testes de colisão. A utilização da grade uniforme reduz drasticamente a quantidade de pares avaliados, refletindo diretamente na melhoria de desempenho observada. O algoritmo de refinamento não influencia este teste, pois a etapa de filtragem é independente. Devido à diferença de ordens de grandeza entre os cenários com e sem fase de filtragem, os resultados são apresentados em escala logarítmica no eixo vertical.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.85\textwidth]{comparativo-tempo-execução.png}
-    \caption{Tempo médio de execução em função do número de objetos para os diferentes algoritmos de refinamento comparado a biblioteca \textit{Planck.js}. Fonte: Autor.}
+    \caption{Tempo médio de execução em função do número de objetos para os diferentes algoritmos de refinamento comparado à biblioteca \textit{Planck.js}. Fonte: Autor.}
     \label{fig:tempo-comparativo}
 \end{figure}
 
-A Figura~\ref{fig:tempo-comparativo} apresenta o tempo médio de execução em função do número de objetos para os diferentes algoritmos de refinamento comparado com a biblioteca \textit{Planck.js}. Nota-se que as curvas são similares tendo a biblioteca \textit{Planck.js} um início melhor mas a nossa implementação do SAT ganhando para números maiores de objetos.
+A Figura~\ref{fig:tempo-comparativo} apresenta o tempo médio de execução em função do número de objetos para os diferentes algoritmos de refinamento comparado com a biblioteca \textit{Planck.js}. Nota-se que a biblioteca \textit{Planck.js} apresenta um desempenho superior, o que pode ser atribuído à otimização e maturidade da implementação, bem como ao uso de uma estrutura de filtragem mais eficiente.
 
-De forma geral, os resultados indicam que a combinação de algoritmos eficientes na fase de \textit{narrow-phase} com estratégias adequadas de \textit{broad-phase} é essencial para garantir desempenho e escalabilidade em sistemas de detecção de colisão.
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{profiling.png}
+    \caption{Tempo relativo por etapas da minha biblioteca. Fonte: Autor.}
+    \label{fig:profiling}
+\end{figure}
+
+A análise da Figura~\ref{fig:profiling} revela um alto impacto da etapa de relaxamento da nossa implementação, o que pode ser atribuído à forma como as restrições são processadas e à necessidade de iterar sobre os pares de partículas para aplicar as correções. Essa etapa é fundamental para garantir a estabilidade da simulação, mas também representa um custo computacional significativo, especialmente em cenários com um grande número de objetos e restrições. A biblioteca \textit{Planck.js} apresenta um tempo de execução menor, o que pode ser explicado pelo uso de outro metodologia diferente de Jakobsen e também pela otimização do código e possivelmente devido a otimizações internas, como gerenciamento eficiente de memória e implementação altamente otimizada.
+
+De forma geral, os resultados indicam que a combinação de algoritmos eficientes na fase de refinamento com estratégias adequadas de filtragem é essencial para garantir desempenho e escalabilidade em sistemas de detecção de colisão.

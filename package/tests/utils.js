@@ -1,8 +1,9 @@
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, write, writeFileSync } from 'fs';
 import { vec2 } from 'gl-matrix';
 
 import { PolygonBody, RectangleBody, TriangleBody } from '../dist/bodies.js';
 import { PoissonDiscSampling } from '../dist/index.js';
+
 export function generateBodies(count, worldDimensions, size) {
     const poissonSamp = new PoissonDiscSampling(
         size,
@@ -16,7 +17,7 @@ export function generateBodies(count, worldDimensions, size) {
         const point = points[i];
         const x = point[0];
         const y = point[1];
-        
+
         const type = Math.random();
         const isStatic = Math.random() < 0.2 ? true : false;
         let body;
@@ -42,26 +43,24 @@ export function exportCSV(metrics, name) {
         mkdirSync(dir, { recursive: true });
     }
 
-    const header =
-        'particles,constraints,collisions_test,true_collisions,broadphase_time,narrowphase_time,dt\n';
+    let keys = [];
+    Object.keys(metrics).forEach((key) => keys.push(key));
+
+    const rowsCount = metrics[keys[0]].length;
     let rows = '';
-    const rowsCount = metrics.particlesCount.length;
     for (let i = 0; i < rowsCount; i++) {
-        rows += `${metrics.particlesCount[i]},${metrics.constraintsCount[i]},${metrics.collisionsTest[i]},${metrics.trueCollisions[i]},${metrics.broadphaseTime[i]},${metrics.narrowphaseTime[i]},${metrics.deltatime[i]}\n`;
+        let row = '';
+        for (const key of keys) {
+            const value = metrics[key][i];
+            if (!value) {
+                row += '0,';
+                continue;
+            }
+            row += `${metrics[key][i]},`;
+        }
+        rows += row.slice(0, -1) + '\n';
     }
 
+    const header = keys.join(',') + '\n';
     writeFileSync(`${dir}/${name}.csv`, header + rows);
 }
-
-// function* cellsForAABB(aabb) {
-//     const gx0 = Math.floor(aabb.min[0] / this.cellSize);
-//     const gy0 = Math.floor(aabb.min[1] / this.cellSize);
-//     const gx1 = Math.floor(aabb.max[0] / this.cellSize);
-//     const gy1 = Math.floor(aabb.max[1] / this.cellSize);
-
-//     for (let gy = gy0; gy <= gy1; gy++) {
-//         for (let gx = gx0; gx <= gx1; gx++) {
-//             yield [gx, gy];
-//         }
-//     }
-// }

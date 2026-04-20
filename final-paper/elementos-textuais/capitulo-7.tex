@@ -1,12 +1,32 @@
 \chapter{Conclusões}
 
-Os experimentos realizados confirmam a viabilidade de um sistema de animação física simplificada, eficiente e estável, totalmente implementado em ambiente web. A combinação entre o integrador de Verlet, as otimizações de detecção de colisão e a execução multi-threaded proporcionou resultados consistentes e visualmente plausíveis em tempo real.
+Este trabalho apresentou o desenvolvimento e a avaliação de um sistema de animação física simplificada, com foco na detecção de colisões entre objetos convexos em ambiente web. A abordagem adotada integrou o uso do integrador de Verlet, técnicas de modelagem baseadas em partículas e diferentes estratégias para detecção de colisão, incluindo os algoritmos SAT e GJK/EPA.
 
-Tais resultados demonstram que é possível construir um motor físico leve e acessível, adequado para aplicações educacionais, jogos independentes e simulações científicas interativas, sem a necessidade de bibliotecas externas ou dependências proprietárias.
+Os resultados experimentais demonstraram que a utilização de uma etapa de filtragem eficiente é fundamental para garantir a escalabilidade do sistema. Em particular, a aplicação de uma grade uniforme reduziu significativamente o número de pares candidatos à colisão, impactando diretamente no desempenho global. Além disso, a comparação entre os algoritmos de refinamento indicou que, embora ambos sejam adequados para detecção de colisões entre objetos convexos, suas diferenças tornam-se mais evidentes em cenários com maior número de objetos.
+
+A análise comparativa com a biblioteca Planck.js evidenciou que, apesar de a implementação desenvolvida apresentar resultados consistentes, ainda há diferenças de desempenho relevantes. Essas diferenças podem ser atribuídas ao uso, pela Planck.js, de estruturas de dados mais sofisticadas na fase de filtragem, como árvores hierárquicas dinâmicas, bem como ao nível de maturidade e otimização da biblioteca.
+
+Outro aspecto relevante observado foi o impacto do modelo de simulação baseado em restrições, especialmente na etapa de relaxamento, que representa uma parcela significativa do custo computacional total. Embora essa abordagem contribua para a estabilidade e simplicidade da simulação, ela introduz limitações em termos de desempenho, principalmente em cenários com grande quantidade de partículas e restrições.
+
+De forma geral, os resultados obtidos confirmam a viabilidade da construção de um sistema de simulação física leve e funcional em ambiente web, capaz de lidar com múltiplos objetos e interações em tempo real. A modularização da arquitetura também se mostrou eficaz, permitindo a substituição e comparação de diferentes algoritmos de detecção de colisão de maneira transparente.
+
+Como limitações deste trabalho, destacam-se a ausência de estruturas mais avançadas de particionamento espacial, como árvores hierárquicas dinâmicas, e a não exploração de estratégias mais sofisticadas de paralelização. Além disso, a avaliação de corretude foi realizada de forma indireta, não havendo validação formal com dados de referência externos.
 
 Como trabalhos futuros, propõe-se:
 \begin{itemize}
-	\item Realizar testes em ambientes 3D
-	\item Implementar hierarquias de volumes limitadores (BVH);
-	\item Migrar a execução paralela para WebGPU Compute Shaders, permitindo simulação massiva em GPU.
+	\item Estender o sistema para ambientes tridimensionais, incluindo o suporte a 3-simplex no algoritmo GJK;
+	\item Implementar estruturas de dados mais eficientes para a fase de filtragem, como árvores AABB dinâmicas;
+	\item Investigar técnicas de paralelização mais avançadas, explorando Web Workers e, potencialmente, computação em GPU;
 \end{itemize}
+
+
+% Embora o desempenho da implementação desenvolvida seja inferior ao da biblioteca Planck.js, os experimentos demonstraram a viabilidade de um sistema de animação física simplificada, eficiente e estável, totalmente implementado em ambiente web. A combinação entre o integrador de Verlet, filtragem e refinamentou proporcionou resultados consistentes e visualmente plausíveis em tempo real.
+
+% Tais resultados demonstram que é possível construir um motor físico leve e acessível, adequado para aplicações educacionais, jogos independentes e simulações científicas interativas, sem a necessidade de bibliotecas externas ou dependências proprietárias.
+
+% Como trabalhos futuros, propõe-se:
+% \begin{itemize}
+% 	\item Estender o sistema para ambientes 3D, avaliando o comportamento dos algoritmos GJK/EPA no espaço tridimensional.
+% 	\item Implementar hierarquias de volumes limitadores (BVH);
+% 	\item Migrar a execução paralela para WebGPU Compute Shaders, permitindo simulação massiva em GPU.
+% \end{itemize}

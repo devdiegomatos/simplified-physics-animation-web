@@ -104,8 +104,7 @@ const fps = ref(0);
 // Main thread mode variables
 const worldBoundings = 600;
 const gridArea = worldBoundings ** 2;
-const gridSize = Math.sqrt(gridArea / (totalEntities * Math.PI));
-const poissonSamp = new PoissonDiscSampling(gridSize, vec2.fromValues(worldBoundings, worldBoundings))
+let gridSize = Math.sqrt(gridArea / (totalEntities * Math.PI));
 let scene: IScene | null = null;
 
 // Threaded mode variables
@@ -140,6 +139,7 @@ async function setup(p: p5) {
 
     p.createCanvas(worldBoundings, worldBoundings).parent(sketchContainer.value);
 
+    const poissonSamp = new PoissonDiscSampling(gridSize, vec2.fromValues(worldBoundings, worldBoundings));
     const points = poissonSamp.GeneratePoints()
 
     if (threaded && worker) {

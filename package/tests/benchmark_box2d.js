@@ -158,7 +158,7 @@ function benchmark(objects) {
 function main() {
     console.log('Iniciando benchmark\n');
 
-    for (let objects = 1000; objects <= 10_000; objects += 1000) {
+    for (let objects = 100; objects <= 1000; objects += 100) {
         benchmark(objects);
     }
 
