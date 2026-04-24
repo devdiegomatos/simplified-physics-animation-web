@@ -68,7 +68,7 @@ export default class Engine {
     public skip: boolean = false;
 
     protected spatialHashGrid: SpatialHashGrid | undefined;
-    protected NUM_ITERATIONS: number = 3;
+    protected NUM_ITERATIONS: number = 5;
 
     constructor(public config: Config) {
         // Inicializa a estrutura de broad phase quando o modo com grade esta ativo.
@@ -207,16 +207,16 @@ export default class Engine {
 
         start = performance.now();
         // 8) Relaxa constraints para estabilizar a malha/forma dos corpos.
-        for (const body of this.bodies) {
-            this.satisfyConstraints(body);
-        }
+        this.satisfyConstraints();
         end = performance.now();
         this.metrics.relaxationTime.push(end - start);
 
         // 9) Libera flag de pausa por colisao e fecha as metricas do frame.
         this.skip = false;
 
-        this.metrics.deltatime.push(performance.now() - dtStart);
+        const dt = performance.now() - dtStart;
+        console.log(dt)
+        this.metrics.deltatime.push(dt);
     }
 
     /**
@@ -249,30 +249,32 @@ export default class Engine {
      * @param body
      * @returns
      */
-    satisfyConstraints(body: Body) {
+    satisfyConstraints() {
         for (let i = 0; i < this.NUM_ITERATIONS; i++) {
-            // Primeiro, aplica limites de mundo para evitar fuga da simulacao.
-            for (const particle of body.particles) {
-                const x = Math.max(
-                    Math.min(
-                        particle.position[0],
-                        this.config.worldBoundings.right[0],
-                    ),
-                    this.config.worldBoundings.top[0],
-                );
-                const y = Math.max(
-                    Math.min(
-                        particle.position[1],
-                        this.config.worldBoundings.right[1],
-                    ),
-                    this.config.worldBoundings.top[1],
-                );
-                vec3.set(particle.position, x, y, 0);
-            }
+            for (const body of this.bodies) {
+                // Primeiro, aplica limites de mundo para evitar fuga da simulacao.
+                for (const particle of body.particles) {
+                    const x = Math.max(
+                        Math.min(
+                            particle.position[0],
+                            this.config.worldBoundings.right[0],
+                        ),
+                        this.config.worldBoundings.top[0],
+                    );
+                    const y = Math.max(
+                        Math.min(
+                            particle.position[1],
+                            this.config.worldBoundings.right[1],
+                        ),
+                        this.config.worldBoundings.top[1],
+                    );
+                    vec3.set(particle.position, x, y, 0);
+                }
 
-            // Depois, relaxa as restricoes internas do corpo.
-            for (const constraint of body.constraints) {
-                constraint.relax();
+                // Depois, relaxa as restricoes internas do corpo.
+                for (const constraint of body.constraints) {
+                    constraint.relax();
+                }
             }
         }
     }
