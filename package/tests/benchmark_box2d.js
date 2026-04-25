@@ -26,9 +26,9 @@ function createRandomConvexPolygon(radius = 1, vertices = 4) {
 
     for (let i = 0; i < vertices; i++) {
         const angle = (i / vertices) * Math.PI * 2;
-        const r = radius * (0.5 + Math.random() * 0.5);
+        // const r = radius * (0.5 + Math.random() * 0.5);
 
-        pts.push(Vec2(r * Math.cos(angle), r * Math.sin(angle)));
+        pts.push(Vec2(radius * Math.cos(angle), radius * Math.sin(angle)));
     }
 
     return pts;
@@ -49,7 +49,7 @@ function createBoundary(world) {
 // Cria obstáculos estáticos
 function createObstacles(world, size) {
     const body = world.createBody({
-        position: Vec2((Math.random() - 0.5) * 10, Math.random() * 5),
+        position: Vec2((Math.random() - 0.5) * CONFIG.worldSize, Math.random() * CONFIG.worldSize),
     });
 
     body.createFixture(planck.Box(size, size));
@@ -87,7 +87,7 @@ function exportCSV(metrics, name) {
         mkdirSync(dir, { recursive: true });
     }
 
-    const header = 'true_collisions,dt\n';
+    const header = 'collisions,dt\n';
     let rows = '';
     for (let i = 0; i < metrics.rowsCount; i++) {
         rows += `${metrics.collisionTests[i]},${metrics.dt[i]}\n`;
@@ -158,7 +158,7 @@ function benchmark(objects) {
 function main() {
     console.log('Iniciando benchmark\n');
 
-    for (let objects = 100; objects <= 1000; objects += 100) {
+    for (let objects = 100; objects <= 2000; objects += 10) {
         benchmark(objects);
     }
 

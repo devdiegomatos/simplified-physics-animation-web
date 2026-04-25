@@ -1,5 +1,3 @@
-import { performance } from 'node:perf_hooks';
-
 import { vec3 } from 'gl-matrix';
 import seedrandom from 'seedrandom';
 
@@ -10,47 +8,27 @@ import {
 } from '../dist/index.js';
 import * as utils from './utils.js';
 
-const testCases = [
-    {
-        worldBoundings: 1000,
-        broadPhaseMode: BroadPhaseMode.Naive,
-        collisionDetection: CollisionDetectionMode.Sat,
-    },
-    {
-        worldBoundings: 1000,
-        broadPhaseMode: BroadPhaseMode.GridSpatialPartition,
-        collisionDetection: CollisionDetectionMode.Sat,
-    },
-    {
-        worldBoundings: 1000,
-        broadPhaseMode: BroadPhaseMode.Naive,
-        collisionDetection: CollisionDetectionMode.GjkEpa,
-    },
-    {
-        worldBoundings: 1000,
-        broadPhaseMode: BroadPhaseMode.GridSpatialPartition,
-        collisionDetection: CollisionDetectionMode.GjkEpa,
-    },
-];
+const isDigitsOnly = (str) => /^\d+$/.test(str);
 
-function buildTestName(test) {
-    let result = '';
-    if (test.broadPhaseMode === BroadPhaseMode.Naive) {
-        result += 'Naive BroadPhase';
-    } else if (test.broadPhaseMode === BroadPhaseMode.GridSpatialPartition) {
-        result += 'Grid Spatial Partition BroadPhase';
+function parseArg(name, fallback) {
+    const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
+    if (!arg) {
+        return fallback;
     }
 
-    if (test.collisionDetection === CollisionDetectionMode.Sat) {
-        result += ' + SAT Collision Detection';
-    } else if (test.collisionDetection === CollisionDetectionMode.GjkEpa) {
-        result += ' + GJK-EPA Collision Detection';
+    const param = arg.split('=')[1];
+    if (!param) {
+        return fallback;
     }
 
-    return result;
+    if (isDigitsOnly(param)) {
+        return parseInt(param);
+    }
+    
+    return param
 }
 
-function intersectionTest(testCase, objects) {
+function benchmark(testCase, objects) {
     const gridArea = testCase.worldBoundings ** 2;
     // const cellSize = Math.sqrt(gridArea / (objects * 5));
     const cellSize = Math.sqrt(gridArea / (objects * Math.PI));
@@ -75,56 +53,49 @@ function intersectionTest(testCase, objects) {
         engine.addBody(body);
     }
 
-    for (let i = 0; i < 60 * 3; i++) {
+    for (let i = 0; i < 180; i++) {
         engine.step(1 / 60);
     }
 
-    let filename = 'collision-test';
-    if (testCase.broadPhaseMode === BroadPhaseMode.Naive) {
-        filename += '-naive-mode';
-    } else if (
-        testCase.broadPhaseMode === BroadPhaseMode.GridSpatialPartition
-    ) {
-        filename += '-grid-mode';
-    }
-
-    if (testCase.collisionDetection === CollisionDetectionMode.Sat) {
-        filename += '-sat';
-    } else if (testCase.collisionDetection === CollisionDetectionMode.GjkEpa) {
-        filename += '-gjk-epa';
-    }
-
-    const now = new Date();
-    filename += `-${objects}-objects-${now.toISOString()}`;
-
-    utils.exportCSV(engine.metrics, filename);
+    return engine.metrics;
 }
 
-function benchmark(test, objects) {
-    let name = buildTestName(test);
-    console.log(`[benchmark] ${name} - ${objects} objetos`);
+const broadphase = parseArg('broadphase');
+const narrowphase = parseArg('narrowphase');
+const objs = parseArg('objects');
 
-    seedrandom('10000', { global: true });
-    const start = performance.now();
+const testCase = {
+    worldBoundings: 1000,
+    broadPhaseMode:
+        broadphase === 'naive'
+            ? BroadPhaseMode.Naive
+            : BroadPhaseMode.GridSpatialPartition,
+    collisionDetection:
+        narrowphase === 'sat'
+            ? CollisionDetectionMode.Sat
+            : CollisionDetectionMode.GjkEpa,
+};
 
-    intersectionTest(test, objects);
+seedrandom('10000', { global: true });
+const metrics = benchmark(testCase, objs);
 
-    const end = performance.now();
-    const total = end - start;
+let keys = [];
+Object.keys(metrics).forEach((key) => keys.push(key));
 
-    console.log(`- tempo total: ${total.toFixed(3)} ms`);
-}
-
-function main() {
-    console.log('Iniciando benchmark\n');
-
-    for (let i = 0; i < testCases.length; i++) {
-        const test = testCases[i];
-        for (let objects = 100; objects <= 1000; objects += 100) {
-            benchmark(test, objects);
+const rowsCount = metrics[keys[0]].length;
+let rows = '';
+for (let i = 0; i < rowsCount; i++) {
+    let row = '';
+    for (const key of keys) {
+        const value = metrics[key][i];
+        if (!value) {
+            row += '0,';
+            continue;
         }
+        row += `${metrics[key][i]},`;
     }
-
-    console.log('Todos os testes finalizaram com sucesso.');
+    rows += row.slice(0, -1) + '\n';
 }
-main();
+
+const header = keys.join(',') + '\n';
+process.stdout.write(header + rows);
