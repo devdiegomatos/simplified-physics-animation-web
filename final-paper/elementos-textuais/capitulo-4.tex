@@ -6,13 +6,13 @@ Este capítulo discute os princípios clássicos e as formulações modernas de 
 
 \section{Pontos de Contato e Manifold de Colisão}
 
-Em sistemas de simulação física e detecção de colisões, não é suficiente apenas determinar se dois objetos estão intersectando. Para a correta resposta física do sistema, é necessário identificar \textit{onde} e \textit{como} ocorre essa interação. Nesse contexto, surgem dois conceitos fundamentais: os \textit{pontos de contato} (\textit{contact points}) e o \textit{manifold de colisão} (\textit{collision manifold}).
+Em sistemas de simulação física e detecção de colisões, não é suficiente apenas determinar se dois objetos estão  se intersectando. Para a correta resposta física do sistema, é necessário identificar \textit{onde} e \textit{como} ocorre essa interação. Nesse contexto, surgem dois conceitos fundamentais: os \textit{pontos de contato} (\textit{contact points}) e o \textit{manifold de colisão} (\textit{collision manifold}).
 
 \subsection*{Pontos de Contato}
 
 Os pontos de contato representam as posições no espaço onde dois objetos em colisão efetivamente se tocam. Em termos geométricos, esses pontos correspondem às soluções do problema de proximidade entre superfícies, podendo ser obtidos tanto em situações de interseção quanto em cenários de mínima distância entre objetos convexos.
 
-Em casos de interpenetração, os pontos de contato geralmente são estimados a partir da região de interseção das superfícies, podendo envolver técnicas adicionais, como \textit{clipping} de faces ou projeções geométricas. Dependendo da configuração dos objetos, pode existir um único ponto de contato (por exemplo, vértice contra face) ou múltiplos pontos (como no contato entre duas faces planas).
+Em casos de interpenetração, os pontos de contato geralmente são estimados a partir da região de interseção das superfícies, podendo envolver técnicas adicionais, como \textit{recorte} de faces ou projeções geométricas. Tipicamente, a geometria no instante de contato não conhecida, mas tem que ser inferida a partir da geometria no instante onde se detecta a interpenetração. Dependendo da configuração dos objetos, pode-se inferir um único ponto de contato (por exemplo, vértice contra face) ou múltiplos pontos (como no contato entre duas faces planas).
 
 \subsection*{Manifold de Colisão}
 
@@ -168,9 +168,9 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
 
 \subsection*{A partir do SAT}
 
-Após a detecção de colisão utilizando o Teorema do Eixo Separador (SAT), é possível calcular os pontos de contato entre dois objetos convexos a partir do eixo de menor penetração. Neste trabalhom, usaremos o método de \textit{clipping} em que consiste inferir o primeiro ponto de contato, progressivamente recortando a face de um objeto com o perímetro de um segundo objeto~\cite{collision_manifolds_2017}. Esse método é comumente usado por bibliotecas como Box2D.
+Após a detecção de colisão utilizando o Teorema do Eixo Separador (SAT), é possível calcular os pontos de contato entre dois objetos convexos a partir do eixo de menor penetração. Neste trabalho, usamos o método de \textit{recorte} que consiste em inferir o primeiro ponto de contato, progressivamente recortando a face de um objeto com a borda de um segundo objeto~\cite{collision_manifolds_2017}. Esse método é comumente usado por bibliotecas como Box2D.
 
-A Figura~\ref{fig:collision-manifold-1} ilustra o caso que iremos analisar. O primeiro passo consiste em identificar as faces incidentes e de referência. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. A face que inclui esse vértice é uma face significante. Depois, iremos selecionar a face significante mais perpendicular à normal da colisão como a face de referência. A face do outro objeto que é mais paralela à normal da colisão é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
+A Figura~\ref{fig:collision-manifold-1} ilustra um caso a  analisar. O primeiro passo consiste em identificar as faces incidentes e de referência. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. A face que inclui esse vértice é uma face significante. Depois, iremos selecionar a face significante que faz o maior ângulo com relação à normal da colisão como a face de referência. A face do outro objeto que é mais paralela à normal da colisão é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
 
 \begin{figure}[htb]
     \centering
@@ -190,7 +190,7 @@ A Figura~\ref{fig:collision-manifold-1} ilustra o caso que iremos analisar. O pr
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Com as duas arestas definidas, o próximo passo é aplicar um processo de \textit{clipping}, cujo objetivo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência. Esse procedimento é semelhante ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}.
+Com as duas arestas definidas, o próximo passo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência. Esse procedimento é semelhante ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}.
 
 % Considere a aresta de referência definida pelos pontos $v_1$ e $v_2$. A partir desses pontos, são definidos dois planos laterais, que limitam a região válida de contato. A aresta incidente, inicialmente composta por dois pontos, é então progressivamente recortada contra esses planos. O Algoritmo~\ref{alg:manifold-clipping} ilustra a operação de clipping contra um plano.
 
