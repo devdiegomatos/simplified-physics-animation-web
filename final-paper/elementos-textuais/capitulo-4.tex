@@ -166,40 +166,55 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
 
 \section{Cálculo dos Pontos de Contato}
 
-Após a detecção de colisão utilizando o SAT ou o EPA, é possível inferir os pontos de contato entre dois objetos convexos. Teoricamente, o GJK pode retornar os pontos de contato diretamente, acelerando essa etapa. Neste trabalho, como nossa implementação distingue os modos de execução entre SAT e GJK e também exigiria grandes modificações no algoritmo, usamos o método de recorte para ambos os modos de detecção de colisão. Este método consiste em inferir o primeiro ponto de contato, progressivamente recortando a face de um objeto com a borda de um segundo objeto~\cite{collision_manifolds_2017, dyn4j_clipping_2011}. Esse método é comumente usado por bibliotecas como Box2D. 
+Para muitos esquemas de animação física a detecção de colisão e o calculo MTV, utilizando o SAT ou o EPA, é suficiente para realizar a separação dos corpos. Porém, como desejamos manter a coerência geométrica, é importante que haja momento angular na separação, ou seja, que após a separação os objetos rotacionem, caso necessário. No método Jakobsen isso é equivalente a mover os vértices dos objetos envolvidos na colisão de forma apropriada. 
 
-A Figura~\ref{fig:collision-manifold-1} ilustra um caso a analisar. O primeiro passo consiste em identificar as arestas que fazem parte da colisão. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. Depois, verifica-se os dois vértices adjacentes e selecionamos a aresta que faz o maior ângulo com relação à normal da colisão. O SAT pode ser modificado para retornar essas informações, ou seja, os vértices e arestas envolvidos na colisão, acelerando essa etapa.
+Teoricamente, o GJK pode resolver um problema de distância e retornar os pontos de contato diretamente, acelerando essa etapa. Neste trabalho, como nossa implementação distingue os modos de execução entre SAT e GJK e também exigiria grandes modificações no algoritmo, usamos um método adaptado de recorte para ambos os modos de detecção de colisão~\cite{collision_manifolds_2017, dyn4j_clipping_2011}.  Este método consiste em inferir os primeiros pontos de contatos entre dois objetos convexos, progressivamente recortando a face de um objeto com a borda de um segundo objeto. Esse método é comumente usado por bibliotecas como Box2D. 
 
-O próxima passo é selecionar a face que faz o maior ângulo com relação à normal da colisão como a face de referência. A face do outro objeto, que é mais paralela à normal da colisão, é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
+Originalmente este método retorna todos os pontos de contato, inclusive aqueles que pertencem a uma aresta. Neste trabalho adaptamos para retornar apenas os vértices envolvidos na colisão, ou seja, os pontos de contato são sempre vértices. 
+
+A Figura~\ref{fig:collision-manifold-1} ilustra um caso a analisar. O primeiro passo consiste em identificar as arestas que fazem parte da colisão. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. Depois, verifica-se os dois vértices adjacentes e selecionamos a aresta que faz o maior ângulo com relação à normal da colisão, como ilustrado na Figura~\ref{fig:collision-manifold-2}. O SAT pode ser modificado para retornar essas informações, ou seja, os vértices e arestas envolvidos na colisão, acelerando essa etapa.
+
+O próxima passo é selecionar a face que faz o maior ângulo com relação à normal da colisão como a face de referência. A face do outro objeto, que é mais paralela à normal da colisão, é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-3}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
 
 \begin{figure}[htb]
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-		\includesvg[width=\textwidth]{collision-manifold-1}
-		\caption{Ilustração do manifold de colisão.}
+		\includesvg[width=\textwidth]{collision-manifold-2}
+		\caption{Cenário de colisão.}
 		\label{fig:collision-manifold-1}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-		\includesvg[width=\textwidth]{collision-manifold-2}
-		\caption{Faces de referência e incidentes.}
+		\includesvg[width=\textwidth]{collision-manifold-3}
+		\caption{Arestas envolvidas na colisão.}
 		\label{fig:collision-manifold-2}
     \end{minipage}
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Com as duas arestas definidas, o próximo passo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência. Esse procedimento é semelhante ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Seja a aresta de referência definido por dois pontos $r_1$ e $r_2$, para cada aresta adjacente, ou seja, o vértice anterior a $r_1$ e seguinte de $r_2$, é aplicado um algoritmo de recorte: seja um plano definido por uma normal $\hat{n}$ e um offset $d$, os pontos do segmento que estão do lado positivo do plano (ou seja, onde $\hat{n} \cdot v - d \geq 0$) são mantidos e os que estiverem do lado negativo, ambos são descartados. Por fim, também é aplicado recorte usando a face de referência, como ilustrado na Figura~\ref{fig:collision-manifold-3}. 
+Com as duas arestas definidas, o próximo passo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência. Esse procedimento é semelhante ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Seja a aresta de referência definido por dois pontos $r_1$ e $r_2$, para cada aresta adjacente, ou seja, as arestas formadas pelos vértices anterior a $r_1$ e seguinte de $r_2$, é aplicado um algoritmo de recorte: seja um plano definido por uma normal $\hat{n}$ e um offset $d$, os pontos do segmento que estão do lado positivo do plano (ou seja, onde $\hat{n} \cdot v - d \geq 0$) são mantidos e os que estiverem do lado negativo, ambos são descartados. Por fim, também é aplicado recorte usando a face de referência, como ilustrado na Figura~\ref{fig:collision-manifold-4}. 
 
 \begin{figure}[htb]
-	\centering
-	\includesvg[width=0.6\linewidth]{collision-manifold-3}
-	\caption{}
-	\label{fig:collision-manifold-3}
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+		\includesvg[width=\textwidth]{collision-manifold-4}
+		\caption{Aresta de referência em vermelho e aresta incidente em azul.}
+		\label{fig:collision-manifold-3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+		\includesvg[width=\textwidth]{collision-manifold-5}
+		\caption{Recorte da face incidente usando os planos definidos pela face de referência.}
+		\label{fig:collision-manifold-4}
+    \end{minipage}
+    % \caption{Figuras lado a lado}
 \end{figure}
 
-O resultado do recorte é um conjunto de pontos quando houve primeiro contato. Basta agora aplicarmos as análises de caso (vertice-vertice, vertice-aresta, aresta-aresta) discutida anteriormente para realizar o processo de separação. O Algoritmo~\ref{alg:manifold-clipping} apresenta o pseudocódigo para o processo de recorte de um segmento contra um plano. 
+O resultado do recorte é um conjunto de pontos quando houve primeiro contato. Basta agora aplicarmos as análises de caso (vertice-vertice, vertice-aresta, aresta-aresta) discutida anteriormente para realizar o processo de separação. O Algoritmo~\ref{alg:manifold-clipping} apresenta o processo de recorte de um segmento contra um plano. 
 
 \begin{algorithm}[htb]
 	\caption{Recorte de um segmento contra um plano}
@@ -228,7 +243,6 @@ O resultado do recorte é um conjunto de pontos quando houve primeiro contato. B
 	\Return{result}
 
 \end{algorithm}
-
 
 % \subsection*{A partir do EPA}
 

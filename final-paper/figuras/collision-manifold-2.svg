@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="76.414917mm"
+   width="76.982376mm"
    height="46.793812mm"
-   viewBox="0 0 76.414917 46.793812"
+   viewBox="0 0 76.982376 46.793812"
    version="1.1"
    id="svg1"
    xmlns="http://www.w3.org/2000/svg"
@@ -30,16 +30,16 @@
   </defs>
   <g
      id="layer1"
-     transform="translate(-121.91461,-34.1298)">
+     transform="translate(-121.34713,-34.1298)">
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.264583;stroke-opacity:1"
+       style="fill:none;stroke:#868686;stroke-width:0.264583;stroke-opacity:1"
        id="rect1-4"
        width="53.674698"
        height="24.332531"
        x="122.43874"
        y="56.458782" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:0.264583;stroke-opacity:1"
+       style="fill:none;stroke:#868686;stroke-width:0.264583;stroke-opacity:1"
        id="rect2-5"
        width="23.259035"
        height="23.259035"
@@ -81,11 +81,11 @@
          x="196.01649"
          y="63.226894">n</tspan></text>
     <path
-       style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1"
        d="M 162.2721,54.487244 182.27633,66.0367"
        id="path5" />
     <path
-       style="fill:none;fill-opacity:1;stroke:#001aff;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.4;stroke-dasharray:none;stroke-opacity:1"
        d="m 122.42066,56.448188 h 53.51478"
        id="path6" />
     <circle
@@ -112,5 +112,17 @@
        cx="182.17654"
        cy="65.847916"
        r="0.56930614" />
+    <circle
+       style="fill:none;stroke:#ff0000;stroke-width:0.2;stroke-dasharray:none;stroke-opacity:1"
+       id="path14"
+       cx="122.43118"
+       cy="56.410385"
+       r="0.98403615" />
+    <circle
+       style="fill:none;stroke:#ff0000;stroke-width:0.2;stroke-dasharray:none;stroke-opacity:1"
+       id="circle15"
+       cx="162.32179"
+       cy="54.397583"
+       r="0.98403615" />
   </g>
 </svg>
