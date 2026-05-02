@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="75.264mm"
+   height="46.793812mm"
+   viewBox="0 0 75.264 46.793812"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="ArrowWide"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
+         d="M 3,-3 0,0 3,3"
+         transform="rotate(180,0.125,0)"
+         id="path1" />
+    </marker>
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-16.327948,-35.281869)">
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.264583;stroke-opacity:1"
+       id="rect1"
+       width="53.674698"
+       height="24.332531"
+       x="16.460239"
+       y="57.610851" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.264583;stroke-opacity:1"
+       id="rect2"
+       width="23.259035"
+       height="23.259035"
+       x="76.48793"
+       y="-3.2116675"
+       transform="rotate(30)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.5;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide)"
+       d="m 90.419233,65.4684 -2.75126,4.76532"
+       id="path2" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.499999;stroke-dasharray:none;stroke-opacity:1"
+       x="40.256027"
+       y="72.281937"
+       id="text3"><tspan
+         id="tspan3"
+         style="font-size:6.35px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.5"
+         x="40.256027"
+         y="72.281937">A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.499999;stroke-dasharray:none;stroke-opacity:1"
+       x="69.777115"
+       y="52.959042"
+       id="text4"><tspan
+         id="tspan4"
+         style="font-size:6.35px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.5"
+         x="69.777115"
+         y="52.959042">B</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.499999;stroke-dasharray:none;stroke-opacity:1"
+       x="89.278908"
+       y="63.872898"
+       id="text5"><tspan
+         id="tspan5"
+         style="font-size:4.23333px;stroke-width:0.5"
+         x="89.278908"
+         y="63.872898">n</tspan></text>
+  </g>
+</svg>

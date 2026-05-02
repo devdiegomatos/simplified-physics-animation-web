@@ -6,13 +6,13 @@ Este capítulo discute os princípios clássicos e as formulações modernas de 
 
 \section{Pontos de Contato e Manifold de Colisão}
 
-Em sistemas de simulação física e detecção de colisões, não é suficiente apenas determinar se dois objetos estão  se intersectando. Para a correta resposta física do sistema, é necessário identificar \textit{onde} e \textit{como} ocorre essa interação. Nesse contexto, surgem dois conceitos fundamentais: os \textit{pontos de contato} (\textit{contact points}) e o \textit{manifold de colisão} (\textit{collision manifold}).
+Em sistemas de simulação física e detecção de colisões, não é suficiente apenas determinar se dois objetos estão  se intersectando. Para a correta resposta física do sistema, é necessário identificar \textit{onde} e \textit{como} ocorre essa interação. Nesse contexto, surgem dois conceitos fundamentais: os pontos de contato (\textit{contact points}) e o manifold de colisão (\textit{collision manifold}).
 
 \subsection*{Pontos de Contato}
 
-Os pontos de contato representam as posições no espaço onde dois objetos em colisão efetivamente se tocam. Em termos geométricos, esses pontos correspondem às soluções do problema de proximidade entre superfícies, podendo ser obtidos tanto em situações de interseção quanto em cenários de mínima distância entre objetos convexos.
+Representam as posições no espaço onde dois objetos em colisão efetivamente se tocam. Em termos geométricos, esses pontos correspondem às soluções do problema de proximidade entre superfícies, podendo ser obtidos tanto em situações de interseção quanto em cenários de mínima distância entre objetos convexos.
 
-Em casos de interpenetração, os pontos de contato geralmente são estimados a partir da região de interseção das superfícies, podendo envolver técnicas adicionais, como \textit{recorte} de faces ou projeções geométricas. Tipicamente, a geometria no instante de contato não conhecida, mas tem que ser inferida a partir da geometria no instante onde se detecta a interpenetração. Dependendo da configuração dos objetos, pode-se inferir um único ponto de contato (por exemplo, vértice contra face) ou múltiplos pontos (como no contato entre duas faces planas).
+Em casos de interpenetração, os pontos de contato geralmente são estimados a partir da região de interseção das superfícies, podendo envolver técnicas adicionais, como recorte de faces ou projeções geométricas. Tipicamente, a geometria no instante de contato não é conhecida, mas tem que ser inferida a partir da geometria no instante onde se detecta a interpenetração. Dependendo da configuração dos objetos, pode-se inferir um único ponto de contato (por exemplo, vértice contra face) ou múltiplos pontos (como no contato entre duas faces planas).
 
 \subsection*{Manifold de Colisão}
 
@@ -132,7 +132,7 @@ O algoritmo de Expansão de Politopos (EPA, do inglês \textit{Expanding Polytop
 
 Vimos no GJK que a distância de um par de objetos é um ponto na fronteira do CSO mais próximo da origem. A estratégia para encontrar o MTV é começar com um politopo que contém a origem e tem vértices que se encontram na fronteira do CSO, e expandir esse politopo adicionando vértices que também estão na fronteira. Para isso o GJK pode ser modificado para retornar o simplex final $Q$ e usá-lo como entrada para o EPA. 
 
-O EPA é um algoritmo iterativo em que, para cada etapa da iteração, selecionamos a face do politopo mais próxima da origem. Sejam $p$ o ponto mais próximo da origem que pertence à face selecionada, e $\vec p$ o seu vetor posição. Então, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então a face selecionada é subdividida no ponto $p$ e o extende até o ponto de suporte $\vec w = S_{CSO} (\vec p)$. Observe que $||\vec w||$ é um limite \textit{superior} para a profundidade de penetração. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenham sido feitas aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
+O EPA é um algoritmo iterativo em que, para cada etapa da iteração, selecionamos a face do politopo mais próxima da origem. Sejam $p$ o ponto mais próximo da origem que pertence à face selecionada, e $\vec p$ o seu vetor posição. Então, o comprimento de $\vec p$ é um limite inferior para a magnitude da profundidade de penetração, e a normal da face mais próxima da origem é uma aproximação para a direção de separação. Então a face selecionada é subdividida no ponto $p$ e o estende até o ponto de suporte $\vec w = S_{CSO} (\vec p)$. Observe que $||\vec w||$ é um limite \textit{superior} para a profundidade de penetração. O processo continua até que o erro entre $\vec p$ e $\vec w$ seja menor que um valor de tolerância $\epsilon$ ou até que tenham sido feitas aproximações sucessivas suficientes. Veja a Figura~\ref{fig:epa} para uma representação visual do processo de expansão de politopos.
 
 \begin{figure}[htb]
 	\centering
@@ -166,126 +166,114 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
 
 \section{Cálculo dos Pontos de Contato}
 
-\subsection*{A partir do SAT}
+Após a detecção de colisão utilizando o SAT ou o EPA, é possível inferir os pontos de contato entre dois objetos convexos. Teoricamente, o GJK pode retornar os pontos de contato diretamente, acelerando essa etapa. Neste trabalho, como nossa implementação distingue os modos de execução entre SAT e GJK e também exigiria grandes modificações no algoritmo, usamos o método de recorte para ambos os modos de detecção de colisão. Este método consiste em inferir o primeiro ponto de contato, progressivamente recortando a face de um objeto com a borda de um segundo objeto~\cite{collision_manifolds_2017, dyn4j_clipping_2011}. Esse método é comumente usado por bibliotecas como Box2D. 
 
-Após a detecção de colisão utilizando o Teorema do Eixo Separador (SAT), é possível calcular os pontos de contato entre dois objetos convexos a partir do eixo de menor penetração. Neste trabalho, usamos o método de \textit{recorte} que consiste em inferir o primeiro ponto de contato, progressivamente recortando a face de um objeto com a borda de um segundo objeto~\cite{collision_manifolds_2017}. Esse método é comumente usado por bibliotecas como Box2D.
+A Figura~\ref{fig:collision-manifold-1} ilustra um caso a analisar. O primeiro passo consiste em identificar as arestas que fazem parte da colisão. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. Depois, verifica-se os dois vértices adjacentes e selecionamos a aresta que faz o maior ângulo com relação à normal da colisão. O SAT pode ser modificado para retornar essas informações, ou seja, os vértices e arestas envolvidos na colisão, acelerando essa etapa.
 
-A Figura~\ref{fig:collision-manifold-1} ilustra um caso a  analisar. O primeiro passo consiste em identificar as faces incidentes e de referência. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. A face que inclui esse vértice é uma face significante. Depois, iremos selecionar a face significante que faz o maior ângulo com relação à normal da colisão como a face de referência. A face do outro objeto que é mais paralela à normal da colisão é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
+O próxima passo é selecionar a face que faz o maior ângulo com relação à normal da colisão como a face de referência. A face do outro objeto, que é mais paralela à normal da colisão, é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
 
 \begin{figure}[htb]
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-		\includegraphics[width=\textwidth]{collision-manifold-1.png}
+		\includesvg[width=\textwidth]{collision-manifold-1}
 		\caption{Ilustração do manifold de colisão.}
 		\label{fig:collision-manifold-1}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-		\includegraphics[width=\textwidth]{collision-manifold-2.png}
+		\includesvg[width=\textwidth]{collision-manifold-2}
 		\caption{Faces de referência e incidentes.}
 		\label{fig:collision-manifold-2}
     \end{minipage}
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Com as duas arestas definidas, o próximo passo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência. Esse procedimento é semelhante ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}.
+Com as duas arestas definidas, o próximo passo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência. Esse procedimento é semelhante ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Seja a aresta de referência definido por dois pontos $r_1$ e $r_2$, para cada aresta adjacente, ou seja, o vértice anterior a $r_1$ e seguinte de $r_2$, é aplicado um algoritmo de recorte: seja um plano definido por uma normal $\hat{n}$ e um offset $d$, os pontos do segmento que estão do lado positivo do plano (ou seja, onde $\hat{n} \cdot v - d \geq 0$) são mantidos e os que estiverem do lado negativo, ambos são descartados. Por fim, também é aplicado recorte usando a face de referência, como ilustrado na Figura~\ref{fig:collision-manifold-3}. 
 
-% Considere a aresta de referência definida pelos pontos $v_1$ e $v_2$. A partir desses pontos, são definidos dois planos laterais, que limitam a região válida de contato. A aresta incidente, inicialmente composta por dois pontos, é então progressivamente recortada contra esses planos. O Algoritmo~\ref{alg:manifold-clipping} ilustra a operação de clipping contra um plano.
+\begin{figure}[htb]
+	\centering
+	\includesvg[width=0.6\linewidth]{collision-manifold-3}
+	\caption{}
+	\label{fig:collision-manifold-3}
+\end{figure}
 
-% \begin{algorithm}[htb]
-% 	\caption{Clipping de um segmento contra um plano}
-%     \label{alg:manifold-clipping}
-%     \KwIn{($v_1, v_2$), normal do plano, offset do plano}
-%     \KwOut{lista de pontos resultantes do clipping}
-	
-%     % result = []
+O resultado do recorte é um conjunto de pontos quando houve primeiro contato. Basta agora aplicarmos as análises de caso (vertice-vertice, vertice-aresta, aresta-aresta) discutida anteriormente para realizar o processo de separação. O Algoritmo~\ref{alg:manifold-clipping} apresenta o pseudocódigo para o processo de recorte de um segmento contra um plano. 
 
-%     % d1 = dot(normal, segment[0]) - offset
-%     % d2 = dot(normal, segment[1]) - offset
+\begin{algorithm}[htb]
+	\caption{Recorte de um segmento contra um plano}
+    \label{alg:manifold-clipping}
+    \KwIn{($v_1$, $v_2$), $\hat n$, $d$}
+    \KwOut{lista de pontos resultantes do recorte}
 
-%     % if d1 >= 0:
-%     %     result.push(segment[0])
+	result $\leftarrow \{\}$ \\
+	$d_1 \leftarrow \hat{n} \cdot v_1 - d$ \\
+	$d_2 \leftarrow \hat{n} \cdot v_2 - d$ \\
 
-%     % if d2 >= 0:
-%     %     result.push(segment[1])
+	\If{$d_1 \geq 0$}{
+		result.push($v_1$)
+	}
 
-%     % if d1 * d2 < 0:
-%     %     t = d1 / (d1 - d2)
-%     %     point = lerp(segment[0], segment[1], t)
-%     %     result.push(point)
+	\If{$d_2 \geq 0$}{
+		result.push($v_2$)
+	}
 
-% 	result $\leftarrow \{\}$ \\
-% 	$d_1 \leftarrow normal \cdot v_1 - offset$ \\
-% 	$d_2 \leftarrow normal \cdot v_2 - offset$ \\
+	% \If{$d_1 \times d_2 < 0$}{
+	% 	t $\leftarrow d_1 / (d_1 - d_2)$ \\
+	% 	point $\leftarrow lerp(v_1, v_2, t)$ \\
+	% 	result.push(point)
+	% }
 
-% 	\If{$d_1 \geq 0$}{
-% 		result.push($v_1$)
-% 	}
+	\Return{result}
 
-% 	\If{$d_2 \geq 0$}{
-% 		result.push($v_2$)
-% 	}
+\end{algorithm}
 
-% 	\If{$d_1 \times d_2 < 0$}{
-% 		t $\leftarrow d_1 / (d_1 - d_2)$ \\
-% 		point $\leftarrow lerp(v_1, v_2, t)$ \\
-% 		result.push(point)
-% 	}
 
-% \end{algorithm}
+% \subsection*{A partir do EPA}
 
-Esse processo é aplicado duas vezes, uma para cada plano lateral da aresta de referência. Após o clipping, obtém-se um conjunto de até dois pontos candidatos a contato.
+% Após a detecção de colisão utilizando o algoritmo GJK, vimos que o EPA pode ser usado para obter o vetor de penetração mínima entre dois corpos convexos $A$ e $B$. Além dessas informações, o EPA também fornece uma estrutura geométrica importante: a aresta do politopo do CSO mais próxima da origem. Essa aresta é formada por dois pontos $P$ e $Q$, onde cada ponto é resultado da diferença entre pontos de suporte dos objetos originais:
 
-Por fim, esses pontos são testados contra o plano da face de referência para verificar se estão dentro da região de penetração. O resultado final é o ponto de contato quando houve primeiro contato. Apenas os pontos com penetração válida (isto é, dentro da região de interseção) são mantidos como pontos de contato.
+% $$
+% P = A_1 - B_1 \quad \text{e} \quad Q = A_2 - B_2
+% $$
 
-O resultado final é um conjunto de até dois pontos de contato, juntamente com a normal de colisão. Esse conjunto forma o chamado \textit{contact manifold}, que pode ser utilizado posteriormente na etapa de resolução de colisões.
+% onde $A_1, A_2 \in A$ e $B_1, B_2 \in B$. Essa informação é fundamental, pois permite inferir diretamente quais vértices e arestas estão envolvidas no contato.
 
-\subsection*{A partir do EPA}
+% A partir dessa representação, é possível classificar o tipo de colisão da seguinte forma:
+% \begin{itemize}
+%     \item Se $A_1 = A_2$, então o contato ocorre entre um vértice de $A$ e uma aresta de $B$
+%     \item Se $B_1 = B_2$, então o contato ocorre entre uma aresta de $A$ e um vértice de $B$
+%     \item Caso contrário, quando todos os vértices são distintos, trata-se de um contato aresta-aresta
+% \end{itemize}
 
-Após a detecção de colisão utilizando o algoritmo GJK, vimos que o EPA pode ser usado para obter o vetor de penetração mínima entre dois corpos convexos $A$ e $B$. Além dessas informações, o EPA também fornece uma estrutura geométrica importante: a aresta do politopo do CSO mais próxima da origem. Essa aresta é formada por dois pontos $P$ e $Q$, onde cada ponto é resultado da diferença entre pontos de suporte dos objetos originais:
+% Uma vez identificadas os vértices envolvidos, os pontos de contato podem ser obtidos diretamente no espaço dos objetos originais. No caso de colisões vértice-aresta, o ponto de contato é calculado projetando o vértice sobre a aresta correspondente. Já no caso de aresta-aresta, pode-se utilizar uma aproximação baseada no ponto médio entre os segmentos mais próximos.
 
-$$
-P = A_1 - B_1 \quad \text{e} \quad Q = A_2 - B_2
-$$
+% O pseudocódigo a seguir resume esse processo:
 
-onde $A_1, A_2 \in A$ e $B_1, B_2 \in B$. Essa informação é fundamental, pois permite inferir diretamente quais vértices e arestas estão envolvidas no contato.
+% \begin{verbatim}
+% function buildContactFromEPA(edge):
+%     A1 = edge.a.supportA
+%     B1 = edge.a.supportB
 
-A partir dessa representação, é possível classificar o tipo de colisão da seguinte forma:
-\begin{itemize}
-    \item Se $A_1 = A_2$, então o contato ocorre entre um vértice de $A$ e uma aresta de $B$
-    \item Se $B_1 = B_2$, então o contato ocorre entre uma aresta de $A$ e um vértice de $B$
-    \item Caso contrário, quando todos os vértices são distintos, trata-se de um contato aresta-aresta
-\end{itemize}
+%     A2 = edge.b.supportA
+%     B2 = edge.b.supportB
 
-Uma vez identificadas os vértices envolvidos, os pontos de contato podem ser obtidos diretamente no espaço dos objetos originais. No caso de colisões vértice-aresta, o ponto de contato é calculado projetando o vértice sobre a aresta correspondente. Já no caso de aresta-aresta, pode-se utilizar uma aproximação baseada no ponto médio entre os segmentos mais próximos.
+%     if A1 == A2:
+%         // vértice A vs aresta B
+%         contactPoint = project(A1, segment(B1, B2))
 
-O pseudocódigo a seguir resume esse processo:
+%     else if B1 == B2:
+%         // aresta A vs vértice B
+%         contactPoint = project(B1, segment(A1, A2))
 
-\begin{verbatim}
-function buildContactFromEPA(edge):
-    A1 = edge.a.supportA
-    B1 = edge.a.supportB
+%     else:
+%         // aresta vs aresta (aproximação)
+%         contactPoint = midpoint(closestPoints(segment(A1, A2),
+%                                               segment(B1, B2)))
 
-    A2 = edge.b.supportA
-    B2 = edge.b.supportB
-
-    if A1 == A2:
-        // vértice A vs aresta B
-        contactPoint = project(A1, segment(B1, B2))
-
-    else if B1 == B2:
-        // aresta A vs vértice B
-        contactPoint = project(B1, segment(A1, A2))
-
-    else:
-        // aresta vs aresta (aproximação)
-        contactPoint = midpoint(closestPoints(segment(A1, A2),
-                                              segment(B1, B2)))
-
-    return contactPoint
-\end{verbatim}
+%     return contactPoint
+% \end{verbatim}
 
 \section{Limitações}
 
