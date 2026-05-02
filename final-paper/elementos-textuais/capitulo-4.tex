@@ -4,27 +4,6 @@ A resposta a colisões é uma etapa fundamental em qualquer sistema de simulaç�
 
 Este capítulo discute os princípios clássicos e as formulações modernas de resposta a colisão, estabelecendo a relação entre os métodos geométricos de detecção e a abordagem baseada em partículas e restrições proposta por \citeonline{jakobsen2001advanced}, que fundamenta este trabalho.
 
-\section{Pontos de Contato e Manifold de Colisão}
-
-Em sistemas de simulação física e detecção de colisões, não é suficiente apenas determinar se dois objetos estão  se intersectando. Para a correta resposta física do sistema, é necessário identificar \textit{onde} e \textit{como} ocorre essa interação. Nesse contexto, surgem dois conceitos fundamentais: os pontos de contato (\textit{contact points}) e o manifold de colisão (\textit{collision manifold}).
-
-\subsection*{Pontos de Contato}
-
-Representam as posições no espaço onde dois objetos em colisão efetivamente se tocam. Em termos geométricos, esses pontos correspondem às soluções do problema de proximidade entre superfícies, podendo ser obtidos tanto em situações de interseção quanto em cenários de mínima distância entre objetos convexos.
-
-Em casos de interpenetração, os pontos de contato geralmente são estimados a partir da região de interseção das superfícies, podendo envolver técnicas adicionais, como recorte de faces ou projeções geométricas. Tipicamente, a geometria no instante de contato não é conhecida, mas tem que ser inferida a partir da geometria no instante onde se detecta a interpenetração. Dependendo da configuração dos objetos, pode-se inferir um único ponto de contato (por exemplo, vértice contra face) ou múltiplos pontos (como no contato entre duas faces planas).
-
-\subsection*{Manifold de Colisão}
-
-O manifold de colisão é uma estrutura que agrega e organiza os pontos de contato entre dois objetos em colisão. Em vez de tratar cada ponto de contato de forma isolada, o manifold fornece uma representação coerente da região de contato, incluindo informações adicionais relevantes para a simulação física.
-
-Um manifold de colisão pode ser definido como o conjunto de pontos de contato juntamente com atributos como:
-\begin{itemize}
-    \item a normal de colisão, que indica a direção de separação entre os objetos;
-    \item a profundidade de penetração associada a cada ponto;
-    \item possíveis informações auxiliares, como identificadores de arestas ou faces.
-\end{itemize}
-
 \section{Métodos Dinâmicos na Simulação Física}
 
 A resposta a colisões consiste, essencialmente, em duas operações principais:
@@ -46,54 +25,26 @@ Nos Métodos de Penalidades, colisões são tratadas como interpenetrações que
 
 Os métodos baseados em restrições formulam os contatos como equações que devem ser satisfeitas exatamente. São resolvidos usando multiplicadores de Lagrange, sendo uma abordagem robusta e adequada para sistemas complexos, mas que exige a solução de sistemas lineares, tornando sua aplicação onerosa em plataformas Web.
 
-\section{Processo de Separação}
+\section{Pontos de Contato e Manifold de Colisão}
 
-A metodologia de \citeonline{jakobsen2001advanced} pode ser compreendida como uma precursora da moderna dinâmica baseada em posição (PBD, do inglês \textit{Position Based Dynamics})~\cite{muller2007position}. Diferentemente das abordagens que atuam sobre a velocidade ou aceleração, \citeonline{jakobsen2001advanced} trata colisões como restrições geométricas adicionais que devem ser satisfeitas durante o processo iterativo de relaxamento da simulação. Assim, objetos penetrando um ao outro são corrigidos exclusivamente por modificações de posição.
+Em sistemas de simulação física e detecção de colisões, não é suficiente apenas determinar se dois objetos estão  se intersectando. Para a correta resposta física do sistema, é necessário identificar \textit{onde} e \textit{como} ocorre essa interação. Nesse contexto, surgem dois conceitos fundamentais: os pontos de contato (\textit{contact points}) e o manifold de colisão (\textit{collision manifold}).
 
-A resposta à colisão envolve dois passos principais. O primeiro consiste em separar os elementos geométricos (vértices, arestas ou faces) que se encontram em interpenetração, o que caracteriza um processo estritamente geométrico. O segundo passo corresponde a um processo iterativo de relaxamento, no qual os elementos afetados ajustam suas posições de acordo com as restrições impostas pelo sistema físico.
+\subsection*{Pontos de Contato}
 
-Para dois objetos convexos $A$ e $B$ em colisão, é necessário uma descrição da área de contato. É comum o esquema de detecção de colisão retornar os pontos de contato de cada objeto e o vetor de translação mínima (MTV, do inglês \textit{Minimum Translation Vector}). O MTV $\vec d$ de um par de objetos que se intersectam é o vetor mais curto sobre o qual um dos objetos precisa ser transladado para separar o par.
+Representam as posições no espaço onde dois objetos em colisão efetivamente se tocam. Em termos geométricos, esses pontos correspondem às soluções do problema de proximidade entre superfícies, podendo ser obtidos tanto em situações de interseção quanto em cenários de mínima distância entre objetos convexos.
 
-Com essas informações devemos tratar duas configurações possíveis: colisão vértice-vértice ou colisão vértice-aresta.
+Em casos de interpenetração, os pontos de contato geralmente são estimados a partir da região de interseção das superfícies, podendo envolver técnicas adicionais, como recorte de faces ou projeções geométricas. Tipicamente, a geometria no instante de contato não é conhecida, mas tem que ser inferida a partir da geometria no instante onde se detecta a interpenetração. Dependendo da configuração dos objetos, pode-se inferir um único ponto de contato (por exemplo, vértice contra face) ou múltiplos pontos (como no contato entre duas faces planas).
 
-\subsection*{Colisão Vértice-Vértice}
+\subsection*{Manifold de Colisão}
 
-Se o contato ocorre pontualmente entre duas partículas $p$ e $q$, a correção é dividida igualmente (assumindo massas iguais):
-$$
-	\Delta \vec p = -\frac{1}{2}\vec d, \qquad
-	\Delta \vec q = +\frac{1}{2}\vec d.
-$$
+O manifold de colisão é uma estrutura que agrega e organiza os pontos de contato entre dois objetos em colisão. Em vez de tratar cada ponto de contato de forma isolada, o manifold fornece uma representação coerente da região de contato, incluindo informações adicionais relevantes para a simulação física.
 
-\subsection*{Colisão Vértice-Aresta}
-
-\begin{figure}[htb]
-	\centering
-	\includesvg[width=0.6\linewidth]{processo-separacao}
-	\caption{Processo de separação caso colisão vértice-aresta. Correção das posição para configuração válida. Perceba que, como $p$ está mais próximo de $x_1$, esse vértice é movido mais.}
-	\label{fig:processo-separacao}
-\end{figure}
-
-Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec x_1$ e $\vec x_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec x_1$ e $\vec x_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec {x'_1}$, $\vec {x'_2}$ de tal forma que garanta uma coerência geométrica, como mostra a Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
-\begin{equation}
-	p = \alpha \vec x_1 + (1-\alpha) \vec x_2, \qquad 0 \leq \alpha \leq 1,
-	\label{eq:parametric_edge}
-\end{equation}
-ou seja, quando $\alpha=0, p=x_2$, quando $\alpha=1, p=x_1$.
-
-Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando o local onde o ponto de contato $p$ se encontra ao longo da aresta $\{x_1 x_2\}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
-\begin{align*}
-	\vec x_1 +&= \alpha \Delta \vec p \\
-	\vec x_2 +&= (1-\alpha) \Delta \vec p \\
-	\alpha
-	&= 
-	\frac{
-		(\vec p - \vec x_2) \cdot (\vec x_1 - \vec x_2)
-	}{
-		\|\vec x_1 - \vec x_2\|^2
-	}.
-	\label{eq:alpha_projection}
-\end{align*}
-Isso garante que a geometria original é preservada e que o ponto $\vec p$, definido implicitamente pelos vértices da aresta, é deslocado exatamente pela quantidade desejada.
+Um manifold de colisão pode ser definido como o conjunto de pontos de contato juntamente com atributos como:
+\begin{itemize}
+    \item a normal de colisão, que indica a direção de separação entre os objetos;
+    \item a profundidade de penetração associada a cada ponto;
+    \item possíveis informações auxiliares, como identificadores de arestas ou faces.
+\end{itemize}
 
 \section{SAT com Cálculo do MTV}
 
@@ -163,6 +114,55 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
 
 	\KwRet{$\hat{n}_e, \delta$}
 \end{algorithm}
+
+\section{Processo de Separação}
+
+A metodologia de \citeonline{jakobsen2001advanced} pode ser compreendida como uma precursora da moderna dinâmica baseada em posição (PBD, do inglês \textit{Position Based Dynamics})~\cite{muller2007position}. Diferentemente das abordagens que atuam sobre a velocidade ou aceleração, \citeonline{jakobsen2001advanced} trata colisões como restrições geométricas adicionais que devem ser satisfeitas durante o processo iterativo de relaxamento da simulação. Assim, objetos penetrando um ao outro são corrigidos exclusivamente por modificações de posição.
+
+A resposta à colisão envolve dois passos principais. O primeiro consiste em separar os elementos geométricos (vértices, arestas ou faces) que se encontram em interpenetração, o que caracteriza um processo estritamente geométrico. O segundo passo corresponde a um processo iterativo de relaxamento, no qual os elementos afetados ajustam suas posições de acordo com as restrições impostas pelo sistema físico.
+
+Para dois objetos convexos $A$ e $B$ em colisão, é necessário uma descrição da área de contato. É comum o esquema de detecção de colisão retornar os pontos de contato de cada objeto e o vetor de translação mínima (MTV, do inglês \textit{Minimum Translation Vector}). O MTV $\vec d$ de um par de objetos que se intersectam é o vetor mais curto sobre o qual um dos objetos precisa ser transladado para separar o par.
+
+Com essas informações devemos tratar duas configurações possíveis: colisão vértice-vértice ou colisão vértice-aresta.
+
+\subsection*{Colisão Vértice-Vértice}
+
+Se o contato ocorre pontualmente entre duas partículas $p$ e $q$, a correção é dividida igualmente (assumindo massas iguais):
+$$
+	\Delta \vec p = -\frac{1}{2}\vec d, \qquad
+	\Delta \vec q = +\frac{1}{2}\vec d.
+$$
+
+\subsection*{Colisão Vértice-Aresta}
+
+\begin{figure}[htb]
+	\centering
+	\includesvg[width=0.6\linewidth]{processo-separacao}
+	\caption{Processo de separação caso colisão vértice-aresta. Correção das posição para configuração válida. Perceba que, como $p$ está mais próximo de $x_1$, esse vértice é movido mais.}
+	\label{fig:processo-separacao}
+\end{figure}
+
+Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec x_1$ e $\vec x_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec x_1$ e $\vec x_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec {x'_1}$, $\vec {x'_2}$ de tal forma que garanta uma coerência geométrica, como mostra a Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
+\begin{equation}
+	p = \alpha \vec x_1 + (1-\alpha) \vec x_2, \qquad 0 \leq \alpha \leq 1,
+	\label{eq:parametric_edge}
+\end{equation}
+ou seja, quando $\alpha=0, p=x_2$, quando $\alpha=1, p=x_1$.
+
+Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando o local onde o ponto de contato $p$ se encontra ao longo da aresta $\{x_1 x_2\}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
+\begin{align*}
+	\vec x_1 +&= \alpha \Delta \vec p \\
+	\vec x_2 +&= (1-\alpha) \Delta \vec p \\
+	\alpha
+	&= 
+	\frac{
+		(\vec p - \vec x_2) \cdot (\vec x_1 - \vec x_2)
+	}{
+		\|\vec x_1 - \vec x_2\|^2
+	}.
+	\label{eq:alpha_projection}
+\end{align*}
+Isso garante que a geometria original é preservada e que o ponto $\vec p$, definido implicitamente pelos vértices da aresta, é deslocado exatamente pela quantidade desejada.
 
 \section{Cálculo dos Pontos de Contato}
 
