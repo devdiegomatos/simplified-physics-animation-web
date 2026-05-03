@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="76.414909mm"
+   width="92.170006mm"
    height="46.7938mm"
-   viewBox="0 0 76.414909 46.7938"
+   viewBox="0 0 92.170006 46.7938"
    version="1.1"
    id="svg1"
    xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +30,15 @@
   </defs>
   <g
      id="layer1"
-     transform="translate(-15.64413,-112.56752)">
+     transform="translate(-15.644129,-112.56752)">
+    <rect
+       style="display:inline;fill:#6d6a6a;fill-opacity:0.290441;stroke:none;stroke-width:0.187841;stroke-dasharray:none;stroke-opacity:1"
+       id="rect8-2"
+       width="40"
+       height="70"
+       x="173.31221"
+       y="15.656561"
+       transform="rotate(30)" />
     <rect
        style="fill:none;stroke:#000000;stroke-width:0.264583;stroke-opacity:1"
        id="rect3"
@@ -79,7 +87,7 @@
          id="tspan8"
          style="font-size:4.23333px;stroke-width:0.5"
          x="89.74601"
-         y="141.66463">n</tspan></text>
+         y="141.66463">$\hat n$</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.3;stroke-dasharray:none;stroke-opacity:1"
        d="m 56.001619,132.92498 20.00423,11.54946"
