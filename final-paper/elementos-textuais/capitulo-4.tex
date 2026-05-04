@@ -117,15 +117,15 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
 
 \section{Cálculo dos Pontos de Contato}
 
-Para muitos esquemas de animação física a detecção de colisão e o calculo MTV, utilizando o SAT ou o EPA, é suficiente para realizar a separação dos corpos. Porém, como desejamos manter a coerência geométrica, é importante que haja conservação do momento angular na separação, ou seja, que após a separação os objetos rotacionem, caso necessário. No método Jakobsen isso é equivalente a mover os vértices dos objetos envolvidos na colisão de forma apropriada. 
+Para muitos esquemas de animação física a detecção de colisão e o cálculo do MTV, utilizando o SAT ou o EPA, é suficiente para realizar a separação dos corpos. Porém, como desejamos manter a coerência geométrica, é importante que haja conservação do momento angular na separação, ou seja, que após a separação os objetos rotacionem, caso necessário. No método de Jakobsen isso é equivalente a mover os vértices dos objetos envolvidos na colisão de forma apropriada. 
 
-Teoricamente, o GJK pode resolver um problema de distância e retornar os pontos de contato diretamente, acelerando essa etapa. Neste trabalho, como nossa implementação distingue os modos de execução entre SAT e GJK e também exigiria grandes modificações no algoritmo, usamos um método adaptado de recorte para ambos os modos de detecção de colisão~\cite{collision_manifolds_2017, dyn4j_clipping_2011}. Este método consiste em inferir os primeiros pontos de contatos entre dois objetos convexos, progressivamente recortando a face de um objeto com a borda de um segundo objeto. Esse método é comumente usado por bibliotecas como Box2D. 
+Teoricamente, o GJK pode resolver um problema de distância e retornar os pontos de contato diretamente, acelerando essa etapa. Neste trabalho, como nossa implementação distingue os modos de execução entre SAT e GJK e também exigiria grandes modificações no algoritmo, usamos um método adaptado de recorte para ambos os modos de detecção de colisão~\cite{collision_manifolds_2017, dyn4j_clipping_2011}. Originalmente, este método consiste em inferir os primeiros pontos de contatos entre dois objetos convexos, progressivamente recortando a face de um objeto com a borda do segundo objeto e retornando todos os pontos de contato, inclusive aqueles que pertencem a uma aresta. Esse método é comumente usado por bibliotecas como Box2D. 
 
-Originalmente este método retorna todos os pontos de contato, inclusive aqueles que pertencem a uma aresta. Neste trabalho adaptamos para retornar apenas os vértices envolvidos na colisão, ou seja, os pontos de contato são sempre vértices. A Figura~\ref{fig:collision-manifold-1} ilustra um caso a analisar onde $\hat n$ é a normal da colisão. 
+Neste trabalho adaptamos o método de recorte para retornar apenas os vértices envolvidos na colisão, ou seja, os pontos de contato são sempre vértices. A Figura~\ref{fig:collision-manifold-1} ilustra um caso a analisar onde $\hat n$ é a normal da colisão. 
 
 O primeiro passo consiste em identificar as arestas que fazem parte da colisão. Primeiro selecionamos, para cada objeto, o vértice mais distante ao longo da normal da colisão. Depois, verifica-se os dois vértices adjacentes e selecionamos a aresta que faz o maior ângulo com relação à normal da colisão, como ilustrado na Figura~\ref{fig:collision-manifold-1}. O SAT pode ser modificado para retornar essas informações, ou seja, os vértices e arestas envolvidos na colisão, acelerando essa etapa.
 
-Depois seleciona a face que faz o maior ângulo com relação à normal da colisão como a face de referência. A face do outro objeto, que é mais paralela à normal da colisão, é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. A face de referência é usada para definir os planos de recorte, enquanto a face incidente é recortada contra esses planos para obter os pontos de contato.
+Depois, a face que faz o maior ângulo com relação à normal da colisão é escolhida como a face de referência. A face do outro objeto, que é mais paralela à normal da colisão, é selecionada como a face incidente. Essa etapa é ilustrada na Figura~\ref{fig:collision-manifold-2}. 
 
 \begin{figure}[htb]
     \centering
@@ -145,7 +145,7 @@ Depois seleciona a face que faz o maior ângulo com relação à normal da colis
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Originalmente o próximo passo é recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definido as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes na direção da normal de colisão $\hat n$. E então aplicarmos as análises de caso (vértice-vértice, vértice-aresta, aresta-aresta) que serão discutidas a seguir para realizar o processo de separação. 
+Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes na direção da normal de colisão $\hat n$. E então aplicarmos as análises de caso (vértice-vértice, vértice-aresta, aresta-aresta) que serão discutidas a seguir para realizar o processo de separação. 
 
 % Seja a aresta de referência definido por dois pontos $r_1$ e $r_2$, para cada aresta adjacente, ou seja, as arestas formadas pelos vértices anterior a $r_1$ e seguinte de $r_2$, é aplicado um algoritmo de recorte: seja um plano definido por uma normal $\hat w$ e um offset $d$, os pontos do segmento que estão do lado positivo do plano (ou seja, onde $\hat w \cdot v - d \geq 0$) são mantidos e os que estiverem do lado negativo, ambos são descartados. Por fim, também é aplicado recorte usando a face de referência, como ilustrado na Figura~\ref{fig:collision-manifold-4}. 
 
@@ -264,15 +264,15 @@ $$
 $$
 Nos casos em que a colisão envolve vértices ou arestas, a correção deve ser distribuída entre os vértices envolvidos, conforme descrito a seguir.
 
-\subsection*{Caso Vértice--Vértice}
+% \subsection*{Caso Vértice--Vértice}
 
-Neste caso, a colisão ocorre entre um vértice $\vec p \in A$ e um vértice $\vec r \in B$. 
-A correção é aplicada diretamente sobre os dois pontos:
-$$
-	\vec{p'} = \vec p - \frac{w_p}{w_p + w_r} \vec c, \quad
-	\vec{r'} = \vec r + \frac{w_r}{w_p + w_r} \vec c
-$$
-onde $w_p$ e $w_r$ são as massas inversas associadas aos vértices.
+% Neste caso, a colisão ocorre entre um vértice $\vec p \in A$ e um vértice $\vec r \in B$. 
+% A correção é aplicada diretamente sobre os dois pontos:
+% $$
+% 	\vec{p'} = \vec p - \frac{w_p}{w_p + w_r} \vec c, \quad
+% 	\vec{r'} = \vec r + \frac{w_r}{w_p + w_r} \vec c
+% $$
+% onde $w_p$ e $w_r$ são as massas inversas associadas aos vértices.
 
 \subsection*{Caso Vértice--Aresta}
 
