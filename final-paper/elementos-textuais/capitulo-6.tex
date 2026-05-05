@@ -71,7 +71,7 @@ Foram considerados quatro casos experimentais:
     \item GJK/EPA sem fase de filtragem;
     \item GJK/EPA com grade uniforme na fase de filtragem.
 \end{itemize}
-O número de objetos foi variado de 100 a 1000, em incrementos de 100. Para cada configuração, foram realizadas 180 execuções independentes, sendo computadas as médias das métricas coletadas.
+O número de objetos foi variado de 100 a 1000, em incrementos de 100. Para cada configuração, foram realizadas 180 quadros independentes, sendo computadas as médias das métricas coletadas.
 
 As métricas analisadas incluem o tempo médio de execução, o número de testes de colisão realizados e tempo decorrido em cada etapa da simulação, permitindo avaliar tanto o custo computacional quanto a corretude dos algoritmos. Essa abordagem permite a visualização simultânea de todas as configurações, preservando a comparabilidade entre os métodos.
 
@@ -86,7 +86,7 @@ Os resultados obtidos permitem analisar o comportamento dos algoritmos sob difer
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.85\textwidth]{comparativo-testes-colisao.png}
-    \caption{Número médio de testes de colisão em função do número de objetos, com e sem utilização de grade uniforme no filtragem, na nossa implementação. Fonte: Autor.}
+    \caption{Número médio de testes de colisão em função do número de objetos, com e sem utilização de grade uniforme na filtragem, da nossa implementação. Fonte: Autor.}
     \label{fig:testes-comparativo}
 \end{figure}
 
@@ -101,7 +101,7 @@ A Figura~\ref{fig:testes-comparativo} evidencia o impacto direto da etapa da fil
 
 % A análise da Figura~\ref{fig:profiling} revela um alto impacto da etapa de relaxamento da nossa implementação, o que pode ser atribuído à forma como as restrições são processadas e à necessidade de iterar sobre os pares de partículas para aplicar as correções. Essa etapa é fundamental para garantir a estabilidade da simulação, mas também representa um custo computacional significativo, especialmente em cenários com um grande número de objetos e restrições. 
 
-A Figura~\ref{fig:profiling} apresenta um gráfico de área empilhado onde o primeiro item da legenda está na base da pilha. Neste gráfico foi mensurado o tempo relativo de cada etapa da implementação usando SAT. A análise evidencia que a etapa de relaxamento domina o custo total de execução em todos os cenários. Esse comportamento decorre do método proposto por Jakobsen, que, embora simples e estável, requer múltiplas iterações para convergir, aumentando o custo proporcionalmente ao número de restrições e de passos de relaxamento. Neste trabalho foram usados 5 iterações de relaxamento. Observa-se também que a fase de refinamento e filtragem são, respectivamente, as mais custosas depois do relaxamento.
+A Figura~\ref{fig:profiling} apresenta um gráfico de área empilhado onde o primeiro item da legenda está na base da pilha. Neste gráfico foi mensurado o tempo relativo de cada etapa da implementação usando SAT. A análise evidencia que a etapa de relaxamento domina o custo total de execução em todos os cenários. Esse comportamento decorre do método proposto por Jakobsen, que, embora simples e estável, requer múltiplas iterações para convergir, aumentando o custo proporcionalmente ao número de restrições e de passos de relaxamento. Neste trabalho foram usados 5 iterações de relaxamento. Observa-se também que a fase de filtragem e refinamento são, respectivamente, as mais custosas depois do relaxamento.
 
 Esses resultados indicam que ganhos de desempenho podem ser obtidos tanto pela redução do número de iterações de relaxamento e o uso de outras estruturas de dados na fase de filtragem, como estruturas hierárquicas. Adicionalmente, a natureza paralelizável dessas etapas sugere o uso de execução multi-thread ou GPU como estratégias promissoras. 
 

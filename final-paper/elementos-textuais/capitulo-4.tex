@@ -145,7 +145,7 @@ Depois, a face que faz o maior ângulo com relação à normal da colisão é es
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes na direção da normal de colisão $\hat n$. 
+Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes da origem na direção da normal de colisão $\hat n$. 
 % E então aplicarmos as análises de caso (vértice-vértice, vértice-aresta, aresta-aresta) que serão discutidas a seguir para realizar o processo de separação. 
 Então aplicamos as análise de caso a seguir.
 
@@ -175,11 +175,11 @@ $$
 Como ambos os corpos são dinâmicos, a correção é distribuída proporcionalmente às massas dos corpos. 
 Sejam $m_A$ e $m_B$ as massas, e $w_A = \frac{1}{m_A}$, $w_B = \frac{1}{m_B}$ suas massas inversas. 
 A distribuição global da correção é definida por:
-
 $$
-\vec c_A = - \frac{w_A}{w_A + w_B} \vec c, \quad
-\vec c_B = \frac{w_B}{w_A + w_B} \vec c
+\vec c_A = - \frac{w_B}{w_A + w_B} \vec c, \quad
+\vec c_B = \frac{w_A}{w_A + w_B} \vec c
 $$
+De modo que o corpo de menor massa recebe maior fração da correção, e vice-versa.
 
 \subsection*{Caso Vértice--Aresta}
 
@@ -190,7 +190,7 @@ $$
 	\label{fig:processo-separacao}
 \end{figure}
 
-Considere um vértice $p \in A$ e uma aresta $\overline{rs} \in B$, definida pelos vértices $r$ e $s$. Seja $w$ o ponto de penetração, correspondente à projeção de $p$ sobre a aresta:
+Considere um vértice $p \in A$ e uma aresta $\overline{rs} \in B$, definida pelos vértices $r$ e $s$.  Seja $w$ o ponto de penetração, correspondente à projeção ortogonal de $p$ sobre a aresta:
 $$
 \alpha = \frac{(p - r) \cdot (s - r)}{\|s - r\|^2}, \quad \alpha \in [0,1]
 $$
@@ -207,7 +207,7 @@ $$
 p' = p + \vec c_A
 $$
 
-Para a aresta, a correção $\vec c_B$ é distribuída entre $r$ e $s$ de forma proporcional à posição do ponto $w$ na aresta:
+Para a aresta, a correção $\vec c_B$ deve ser distribuída entre os vértices $r$ e $s$ da aresta de forma ponderada pelo parâmetro $t$, de modo que o vértice mais próximo de $w$ receba maior fração do deslocamento.
 $$
 r' = r + (1 - \alpha)\vec c_B, \quad
 s' = s + \alpha \vec c_B

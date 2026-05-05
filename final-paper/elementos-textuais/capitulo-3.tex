@@ -1,6 +1,6 @@
 \chapter{Detecção de Colisões}
 
-A detecção de colisões é um componente fundamental em sistemas de simulação física e em animações baseadas em partículas. Esse processo identifica quando dois ou mais objetos entram em contato, determina pontos de interseção e, quando necessário, fornece informações como vetores de penetração e normais que servirão de entrada para a etapa subsequente de resposta física. Em contextos interativos em tempo real, a precisão geométrica absoluta costuma ser sacrificada em favor da eficiência computacional, desde que o comportamento resultante se mantenha visualmente verossímil.
+A detecção de colisões é um componente fundamental em sistemas de simulação física e em animações baseadas em partículas. Esse processo identifica quando dois ou mais objetos entram em contato e, quando necessário, fornece informações como vetores de penetração e normais que servirão de entrada para a etapa subsequente de resposta física. Em contextos interativos em tempo real, a precisão geométrica absoluta costuma ser sacrificada em favor da eficiência computacional, desde que o comportamento resultante se mantenha visualmente verossímil.
 
 Este capítulo introduz os principais conceitos utilizados no âmbito deste trabalho, descrevendo as representações geométricas mais comuns para objetos convexos e apresentando dois algoritmos amplamente empregados em detecção de colisões: o Teorema do Eixo Separador (SAT, do inglês \textit{Separating Axis Theorem}) e o algoritmo Gilbert-Johnson-Keerthi (GJK). Ambos operam eficientemente em formas convexas e constituem a base de vários motores físicos modernos.
 
@@ -122,7 +122,7 @@ Dessa forma, seja $D$ a diferença de Minkowski de dois objetos convexos $A$ e $
 	\label{fig:support_function}
 \end{figure}
 
-A busca pelo ponto mais próximo da origem dentro do CSO é sustentado pelo teorema de Carathéodory~\cite{rockafellar1970convex}. O teorema afirma que se um ponto $\vec x$ está no interior do fecho convexo de um conjunto $P$ em $\mathbb{R}^m$ então $\vec x$ está no interior de um simplex com vértices em $P$.
+A busca pelo ponto mais próximo da origem dentro do CSO é sustentado pelo teorema de Carathéodory~\cite{ericson2004real}. O teorema afirma que se um ponto $\vec x$ está no interior do fecho convexo de um conjunto $P$ em $\mathbb{R}^m$ então $\vec x$ está no interior de um simplex com vértices em $P$.
 
 Um simplex (plural: \textit{simplices}) é definido como um politopo de $k+1$ vértices em um espaço de dimensão $k$. Dessa forma um ponto é 0-simplex, um segmento de reta é 1-simplex, um triângulo é 2-simplex, um tetraedro é 3-simplex, como na Figura~\ref{fig:simplex}.
 \begin{figure}[htb]
