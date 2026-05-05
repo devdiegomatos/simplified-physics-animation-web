@@ -85,4 +85,8 @@ export default class Scene implements IScene {
     getConstraintsCount(): number {
         return this.engine.metrics.constraintsCount[this.engine.metrics.constraintsCount.length - 1];
     }
+
+    togglePause() {
+        this.engine.isPaused = !this.engine.isPaused;
+    }
 }

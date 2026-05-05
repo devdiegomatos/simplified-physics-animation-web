@@ -88,7 +88,7 @@ import p5 from 'p5';
 import { PolygonBody, type Body, TriangleBody, RectangleBody } from '@devdiegomatos/liso-engine/bodies';
 import { BroadPhaseMode, CollisionDetectionMode, Engine } from '@devdiegomatos/liso-engine';
 import { createEngineWorker, type MainToWorkerMessage, type WorkerToMainMessage, type ObjectBuilderArgs, ObjectType } from '@devdiegomatos/liso-engine/worker';
-import { PoissonDiscSampling } from '@devdiegomatos/liso-engine'
+import { PoissonDiscSampling } from '@devdiegomatos/liso-engine';
 import Scene from '@/scenes/Scene';
 import type IScene from '@/scenes/IScene';
 import SceneThreaded from '@/scenes/SceneThreaded';
@@ -96,7 +96,7 @@ import SceneThreaded from '@/scenes/SceneThreaded';
 // Component States
 let hasStarted = false,
     threaded = false;
-let totalEntities = 100;
+let totalEntities = 10;
 let broadPhase: BroadPhaseMode = BroadPhaseMode.GridSpatialPartition;
 let collisionDetection: CollisionDetectionMode = CollisionDetectionMode.GjkEpa;
 const fps = ref(0);
@@ -128,10 +128,18 @@ function start() {
         sketchInstance = new p5(sketch);
     }
 
-    if (threaded) {
-        worker = createEngineWorker();
-        worker.addEventListener('message', OnWorkerEvent);
-    }
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') {
+            if (scene) {
+                scene.togglePause();
+            }
+        }
+    });
+
+    // if (threaded) {
+    //     worker = createEngineWorker();
+    //     worker.addEventListener('message', OnWorkerEvent);
+    // }
 }
 
 async function setup(p: p5) {
@@ -139,8 +147,8 @@ async function setup(p: p5) {
 
     p.createCanvas(worldBoundings, worldBoundings).parent(sketchContainer.value);
 
-    const poissonSamp = new PoissonDiscSampling(gridSize, vec2.fromValues(worldBoundings, worldBoundings));
-    const points = poissonSamp.GeneratePoints()
+    const poissonSamp = new PoissonDiscSampling(gridSize * 1.2, vec2.fromValues(worldBoundings, worldBoundings));
+    const points = poissonSamp.GeneratePoints();
 
     if (threaded && worker) {
         scene = new SceneThreaded();
