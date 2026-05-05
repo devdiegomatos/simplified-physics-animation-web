@@ -48,7 +48,7 @@ Um manifold de colisão pode ser definido como o conjunto de pontos de contato j
 
 \section{SAT com Cálculo do MTV}
 
-O SAT pode ser estendido para calcular o vetor de translação mínima. Em vez de encerrar antecipadamente quando uma sobreposição é detectada em um eixo, todos os eixos são testados quanto à sobreposição. Após todos os eixos terem sido testados, o eixo com a menor sobreposição (normalizada) pode ser usado como a normal de contato, e a magnitude da sobreposição pode ser utilizada para estimar a profundidade de penetração
+O SAT pode ser estendido para calcular o vetor de translação mínima (MTV, do inglês \textit{Minimum Translation Vector}). Em vez de encerrar antecipadamente quando uma sobreposição é detectada em um eixo, todos os eixos são testados quanto à sobreposição. Após todos os eixos terem sido testados, o eixo com a menor sobreposição (normalizada) pode ser usado como a normal de contato, e a magnitude da sobreposição pode ser utilizada para estimar a profundidade de penetração
 % Com algum trabalho adicional, pontos de contato também podem ser calculados com a ajuda do eixo separador
 ~\cite{ericson2004real}. Como mostrado no Algoritmo~\ref{alg:sat_mtv}.
 
@@ -117,7 +117,7 @@ O Algoritmo~\ref{alg:epa} expande iterativamente o simplex final do GJK até enc
 
 \section{Cálculo dos Pontos de Contato}
 
-Para muitos esquemas de animação física a detecção de colisão e o cálculo do MTV, utilizando o SAT ou o EPA, é suficiente para realizar a separação dos corpos. Porém, como desejamos manter a coerência geométrica, é importante que haja conservação do momento angular na separação, ou seja, que após a separação os objetos rotacionem, caso necessário. No método de Jakobsen isso é equivalente a mover os vértices dos objetos envolvidos na colisão de forma apropriada. 
+Em muitos esquemas de animação física, a detecção de colisão e o cálculo do MTV, utilizando o SAT ou o EPA, são suficientes para realizar a separação dos corpos. Porém, como desejamos manter a coerência geométrica, é importante que haja conservação do momento angular na separação, ou seja, que após a separação os objetos rotacionem, caso necessário. No método de Jakobsen isso é equivalente a mover os vértices dos objetos envolvidos na colisão de forma apropriada. 
 
 Teoricamente, o GJK pode resolver um problema de distância e retornar os pontos de contato diretamente, acelerando essa etapa. Neste trabalho, como nossa implementação distingue os modos de execução entre SAT e GJK e também exigiria grandes modificações no algoritmo, usamos um método adaptado de recorte para ambos os modos de detecção de colisão~\cite{collision_manifolds_2017, dyn4j_clipping_2011}. Originalmente, este método consiste em inferir os primeiros pontos de contatos entre dois objetos convexos, progressivamente recortando a face de um objeto com a borda do segundo objeto e retornando todos os pontos de contato, inclusive aqueles que pertencem a uma aresta. Esse método é comumente usado por bibliotecas como Box2D. 
 
@@ -145,242 +145,87 @@ Depois, a face que faz o maior ângulo com relação à normal da colisão é es
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes na direção da normal de colisão $\hat n$. E então aplicarmos as análises de caso (vértice-vértice, vértice-aresta, aresta-aresta) que serão discutidas a seguir para realizar o processo de separação. 
+Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes na direção da normal de colisão $\hat n$. 
+% E então aplicarmos as análises de caso (vértice-vértice, vértice-aresta, aresta-aresta) que serão discutidas a seguir para realizar o processo de separação. 
+Então aplicamos as análise de caso a seguir.
 
-% Seja a aresta de referência definido por dois pontos $r_1$ e $r_2$, para cada aresta adjacente, ou seja, as arestas formadas pelos vértices anterior a $r_1$ e seguinte de $r_2$, é aplicado um algoritmo de recorte: seja um plano definido por uma normal $\hat w$ e um offset $d$, os pontos do segmento que estão do lado positivo do plano (ou seja, onde $\hat w \cdot v - d \geq 0$) são mantidos e os que estiverem do lado negativo, ambos são descartados. Por fim, também é aplicado recorte usando a face de referência, como ilustrado na Figura~\ref{fig:collision-manifold-4}. 
-
-% \begin{figure}[htb]
-%     \centering
-%     \begin{minipage}{0.45\textwidth}
-%         \centering
-% 		\includesvg[width=\textwidth]{collision-manifold-4}
-% 		\caption{Recorte da aresta incidente usando os planos definidos pela aresta de referência.}
-% 		\label{fig:collision-manifold-3}
-%     \end{minipage}
-%     \hfill
-%     \begin{minipage}{0.45\textwidth}
-%         \centering
-% 		\includesvg[width=\textwidth]{collision-manifold-5}
-% 		\caption{Recorte usando a face de referência. O resultado é um conjunto de pontos de contato.}
-% 		\label{fig:collision-manifold-4}
-%     \end{minipage}
-%     % \caption{Figuras lado a lado}
-% \end{figure}
-
-% O resultado do recorte é um conjunto de pontos quando houve primeiro contato. Entretanto, não chega a ser necessário realizar todo o método de recorte. 
-% O Algoritmo~\ref{alg:manifold-clipping} apresenta o processo de recorte de um segmento contra um plano. 
-
-% \begin{algorithm}[htb]
-% 	\caption{Recorte de um segmento contra um plano}
-%     \label{alg:manifold-clipping}
-%     \KwIn{($v_1$, $v_2$), $\hat n$, $d$}
-%     \KwOut{lista de pontos resultantes do recorte}
-
-% 	result $\leftarrow \{\}$ \\
-% 	$d_1 \leftarrow \hat{n} \cdot v_1 - d$ \\
-% 	$d_2 \leftarrow \hat{n} \cdot v_2 - d$ \\
-
-% 	\If{$d_1 \geq 0$}{
-% 		result.push($v_1$)
-% 	}
-
-% 	\If{$d_2 \geq 0$}{
-% 		result.push($v_2$)
-% 	}
-
-% 	% \If{$d_1 \times d_2 < 0$}{
-% 	% 	t $\leftarrow d_1 / (d_1 - d_2)$ \\
-% 	% 	point $\leftarrow lerp(v_1, v_2, t)$ \\
-% 	% 	result.push(point)
-% 	% }
-
-% 	\Return{result}
-
-% \end{algorithm}
-
-% \subsection*{A partir do EPA}
-
-% Após a detecção de colisão utilizando o algoritmo GJK, vimos que o EPA pode ser usado para obter o vetor de penetração mínima entre dois corpos convexos $A$ e $B$. Além dessas informações, o EPA também fornece uma estrutura geométrica importante: a aresta do politopo do CSO mais próxima da origem. Essa aresta é formada por dois pontos $P$ e $Q$, onde cada ponto é resultado da diferença entre pontos de suporte dos objetos originais:
-
-% $$
-% P = A_1 - B_1 \quad \text{e} \quad Q = A_2 - B_2
-% $$
-
-% onde $A_1, A_2 \in A$ e $B_1, B_2 \in B$. Essa informação é fundamental, pois permite inferir diretamente quais vértices e arestas estão envolvidas no contato.
-
-% A partir dessa representação, é possível classificar o tipo de colisão da seguinte forma:
-% \begin{itemize}
-%     \item Se $A_1 = A_2$, então o contato ocorre entre um vértice de $A$ e uma aresta de $B$
-%     \item Se $B_1 = B_2$, então o contato ocorre entre uma aresta de $A$ e um vértice de $B$
-%     \item Caso contrário, quando todos os vértices são distintos, trata-se de um contato aresta-aresta
-% \end{itemize}
-
-% Uma vez identificadas os vértices envolvidos, os pontos de contato podem ser obtidos diretamente no espaço dos objetos originais. No caso de colisões vértice-aresta, o ponto de contato é calculado projetando o vértice sobre a aresta correspondente. Já no caso de aresta-aresta, pode-se utilizar uma aproximação baseada no ponto médio entre os segmentos mais próximos.
-
-% O pseudocódigo a seguir resume esse processo:
-
-% \begin{verbatim}
-% function buildContactFromEPA(edge):
-%     A1 = edge.a.supportA
-%     B1 = edge.a.supportB
-
-%     A2 = edge.b.supportA
-%     B2 = edge.b.supportB
-
-%     if A1 == A2:
-%         // vértice A vs aresta B
-%         contactPoint = project(A1, segment(B1, B2))
-
-%     else if B1 == B2:
-%         // aresta A vs vértice B
-%         contactPoint = project(B1, segment(A1, A2))
-
-%     else:
-%         // aresta vs aresta (aproximação)
-%         contactPoint = midpoint(closestPoints(segment(A1, A2),
-%                                               segment(B1, B2)))
-
-%     return contactPoint
-% \end{verbatim}
+Existem dois casos possíveis de retorno neste método adaptado de recorte. O caso de retornar 3 pontos é o mais comum, onde um vértice de um objeto penetra a face do outro objeto. O caso de retornar 4 pontos é um caso raro de aresta-aresta. O processo de separação é discutido a seguir. Os casos de 0, 1 ou 2 pontos de contato não são possíveis pois sempre detectamos a interpenetração entre dois objetos.
 
 \section{Processo de Separação}
 
 A metodologia de \citeonline{jakobsen2001advanced} pode ser compreendida como uma precursora da moderna dinâmica baseada em posição (PBD, do inglês \textit{Position Based Dynamics})~\cite{muller2007position}. Diferentemente das abordagens que atuam sobre a velocidade ou aceleração, \citeonline{jakobsen2001advanced} trata colisões como restrições geométricas adicionais que devem ser satisfeitas durante o processo iterativo de relaxamento da simulação. Assim, objetos penetrando um ao outro são corrigidos exclusivamente por modificações de posição.
 
-A resposta à colisão envolve dois passos principais. O primeiro consiste em separar os elementos geométricos (vértices, arestas ou faces) que se encontram em interpenetração, o que caracteriza um processo estritamente geométrico. O segundo passo corresponde a um processo iterativo de relaxamento, no qual os elementos afetados ajustam suas posições de acordo com as restrições impostas pelo sistema físico.
+A resposta à colisão envolve dois passos principais. O primeiro consiste em separar os elementos geométricos (vértices, arestas ou faces) que se encontram em interpenetração, o que caracteriza um processo estritamente geométrico. O segundo passo corresponde a um processo iterativo de relaxamento, no qual os elementos afetados ajustam suas posições de acordo com as restrições impostas pelo sistema físico. Existem dois casos principais a considerar: colisão vértice-aresta e colisão aresta-aresta. O caso de colisão vértice-vértice não é possível pois sempre detectamos a interpenetração entre dois objetos.
 
-Para dois objetos convexos $A$ e $B$ em colisão, é necessário um manifold de colisão que contém os pontos de contato, direção de separação $\hat n$ e profundidade de penetração $d$. O objetivo da etapa de resolução é eliminar a interpenetração projetando os corpos ao longo da normal $\hat n$. 
-A correção total é dada por:
+Considere dois corpos rígidos convexos dinâmicos $A$ e $B$ em estado de interpenetração. 
+O subsistema de detecção de colisão fornece:
+
+\begin{itemize}
+    \item a normal de separação unitária $\vec n$ (orientada de $A$ para $B$),
+    \item a profundidade de penetração $d$,
+    \item os vértices envolvidos no primeiro contato.
+\end{itemize}
+
+A correção geométrica necessária para eliminar a interpenetração é dada por:
+
 $$
-	\vec c = d \cdot \hat n
+\vec c = d \cdot \vec n
 $$
 
-Para corpos dinâmicos, essa correção é distribuída proporcionalmente às massas inversas. 
-Sejam $w_A = \frac{1}{m_A}$ e $w_B = \frac{1}{m_B}$, com $w_{sum} = w_A + w_B$. 
-As correções aplicadas aos corpos são:
-$$
-	\Delta x_A = - \frac{w_A}{w_{sum}} \vec c, \quad
-	\Delta x_B = \frac{w_B}{w_{sum}} \vec c
-$$
-Nos casos em que a colisão envolve vértices ou arestas, a correção deve ser distribuída entre os vértices envolvidos, conforme descrito a seguir.
+Como ambos os corpos são dinâmicos, a correção é distribuída proporcionalmente às massas dos corpos. 
+Sejam $m_A$ e $m_B$ as massas, e $w_A = \frac{1}{m_A}$, $w_B = \frac{1}{m_B}$ suas massas inversas. 
+A distribuição global da correção é definida por:
 
-% \subsection*{Caso Vértice--Vértice}
-
-% Neste caso, a colisão ocorre entre um vértice $\vec p \in A$ e um vértice $\vec r \in B$. 
-% A correção é aplicada diretamente sobre os dois pontos:
-% $$
-% 	\vec{p'} = \vec p - \frac{w_p}{w_p + w_r} \vec c, \quad
-% 	\vec{r'} = \vec r + \frac{w_r}{w_p + w_r} \vec c
-% $$
-% onde $w_p$ e $w_r$ são as massas inversas associadas aos vértices.
+$$
+\vec c_A = - \frac{w_A}{w_A + w_B} \vec c, \quad
+\vec c_B = \frac{w_B}{w_A + w_B} \vec c
+$$
 
 \subsection*{Caso Vértice--Aresta}
 
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=0.45\linewidth]{processo-separacao}
-	\caption{Processo de separação caso colisão vértice-aresta. Correção das posição para configuração válida. Perceba que, como $\vec w$ está mais próximo de $\vec r$, esse vértice é movido mais.}
+	\caption{Caso colisão vértice-aresta. Correção das posição para configuração válida. O vértice mais próximo de $w$ sofre maior deslocamento, preservando a coerência geométrica da aresta.}
 	\label{fig:processo-separacao}
 \end{figure}
 
-Esta é a configuração mais comum. Um vértice $\vec p \in A$ contra uma aresta definida pelos vértices $\vec r, \vec s \in B$. O ponto de penetração $\vec w$ cai entre dois vértices $\vec r$ e $\vec s$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec {r'}$, $\vec {s'}$ de tal forma que garanta uma coerência geométrica, como mostra a Figura~\ref{fig:processo-separacao}. O ponto $\vec w$ na aresta $\overline{rs}$, obtido por projeção:
-\begin{align*}
-	\alpha &= \frac{(\vec p - \vec r) \cdot (\vec s - \vec r)}{\|\vec s - \vec r\|^2}, \quad
-	\alpha \in [0,1], \\
-	\vec w &= \vec r + \alpha (\vec s - \vec r)
-\end{align*}
+Considere um vértice $p \in A$ e uma aresta $\overline{rs} \in B$, definida pelos vértices $r$ e $s$. Seja $w$ o ponto de penetração, correspondente à projeção de $p$ sobre a aresta:
+$$
+\alpha = \frac{(p - r) \cdot (s - r)}{\|s - r\|^2}, \quad \alpha \in [0,1]
+$$
 
-Desejamos que $\vec w = \vec p$, logo a correção $\Delta \vec w$ deve alterar indiretamente $\vec r$ e $\vec s$ de forma proporcional à parametrização anterior. A correção é distribuída entre $\vec p$, $\vec r$ e $\vec s$ usando coordenadas baricêntricas:
-\begin{align*}
-	\vec{p'} &= \vec p - \frac{w_p}{w_p + w_r + w_s} \vec c, \\
-	\vec{r'} &= \vec r + \frac{w_r}{w_p + w_r + w_s} \alpha \vec c, \\
-	\vec{s'} &= \vec s + \frac{w_s}{w_p + w_r + w_s} (1 - \alpha)\vec c
-\end{align*}
-Esse esquema garante que a correção respeite a geometria da aresta.
+$$
+w = r + \alpha (s - r)
+$$
+O objetivo é deslocar $p$ e $w$ para uma nova posição comum $w'$, tal que:
+$$
+w' = w + \vec c_B = p + \vec c_A
+$$
+A correção aplicada ao vértice $p$ é:
+$$
+p' = p + \vec c_A
+$$
+
+Para a aresta, a correção $\vec c_B$ é distribuída entre $r$ e $s$ de forma proporcional à posição do ponto $w$ na aresta:
+$$
+r' = r + (1 - \alpha)\vec c_B, \quad
+s' = s + \alpha \vec c_B
+$$
 
 \subsection*{Caso Aresta--Aresta}
 
-Neste caso, considera-se a interação entre duas arestas $\overline{pq} \in A$ e $\overline{rs} \in B$. 
-Sejam $\vec w$ e $\vec s$ os pontos mais próximos entre as duas arestas, que podem ser expressos como:
+Este é um caso raro, considera-se a interação entre duas arestas $\overline{pq} \in A$ e $\overline{rs} \in B$. Sejam $w$ e $t$ os pontos mais próximos entre as duas arestas, que podem ser expressos como:
 $$
-	\vec w = \vec a + \alpha (\vec b - \vec a), \quad
-	\vec s = \vec c + \beta (\vec d - \vec c)
+	w = r + \alpha (s - r), \quad
+	t = q + \beta (p - q)
 $$
 com $\alpha, \beta \in [0,1]$.
 
-A correção é então distribuída entre os quatro vértices com base nas coordenadas baricêntricas:
+De forma análoga ao caso anterior, correção é então distribuída entre os quatro vértices:
 \begin{align*}
-	\vec{a'} = \vec a - \frac{w_a}{w_{sum}} (1 - \alpha)\vec c, \quad
-	\vec{b'} = \vec b - \frac{w_b}{w_{sum}} \alpha \vec c, \\
-	\vec{c'} = \vec c + \frac{w_c}{w_{sum}} (1 - \beta)\vec c, \quad
-	\vec{d'} = \vec d + \frac{w_d}{w_{sum}} \beta \vec c
+	p' = p - (1 - \alpha)\vec c_A, \quad
+	q' = q - \alpha \vec c_A, \\
+	r' = r + (1 - \beta)\vec c_B, \quad
+	s' = s + \beta \vec c_B
 \end{align*}
-onde:
-$$
-w_{sum} = w_a + w_b + w_c + w_d
-$$
-
-% \subsection*{Colisão Vértice-Vértice}
-
-% Se o contato ocorre pontualmente entre duas partículas $p$ e $q$, a correção é dividida igualmente (assumindo massas iguais):
-% $$
-% 	\Delta \vec p = -\frac{1}{2}\vec d, \qquad
-% 	\Delta \vec q = +\frac{1}{2}\vec d.
-% $$
-
-% \subsection*{Colisão Vértice-Aresta}
-
-% \begin{figure}[htb]
-% 	\centering
-% 	\includesvg[width=0.6\linewidth]{processo-separacao}
-% 	\caption{Processo de separação caso colisão vértice-aresta. Correção das posição para configuração válida. Perceba que, como $p$ está mais próximo de $x_1$, esse vértice é movido mais.}
-% 	\label{fig:processo-separacao}
-% \end{figure}
-
-% Esta é a configuração mais comum. Um vértice $p$ de um corpo colide contra uma aresta definida pelas partículas $\vec x_1$ e $\vec x_2$ de outro corpo. O ponto de impacto $p$ cai entre dois vértices $\vec x_1$ e $\vec x_2$ e o nosso objetivo é corrigir as suas posições para uma configuração válida $\vec {x'_1}$, $\vec {x'_2}$ de tal forma que garanta uma coerência geométrica, como mostra a Figura~\ref{fig:processo-separacao}. Logo, pela equação da reta, $p$ pode ser descrito como uma interpolação linear
-% \begin{equation}
-% 	p = \alpha \vec x_1 + (1-\alpha) \vec x_2, \qquad 0 \leq \alpha \leq 1,
-% 	\label{eq:parametric_edge}
-% \end{equation}
-% ou seja, quando $\alpha=0, p=x_2$, quando $\alpha=1, p=x_1$.
-
-% Durante a separação, a correção $\Delta \vec p$ deve alterar indiretamente $\vec x_1$ e $\vec x_2$ de forma proporcional a essa parametrização. A partir da Eq.~\ref{eq:parametric_edge}, derivamos o valor de $\alpha$ calculando o local onde o ponto de contato $p$ se encontra ao longo da aresta $\{x_1 x_2\}$. Dessa forma, \citeonline{jakobsen2001advanced} computa as novas posições movendo as partículas proporcionalmente a $\alpha$:
-% \begin{align*}
-% 	\vec x_1 +&= \alpha \Delta \vec p \\
-% 	\vec x_2 +&= (1-\alpha) \Delta \vec p \\
-% 	\alpha
-% 	&= 
-% 	\frac{
-% 		(\vec p - \vec x_2) \cdot (\vec x_1 - \vec x_2)
-% 	}{
-% 		\|\vec x_1 - \vec x_2\|^2
-% 	}.
-% 	\label{eq:alpha_projection}
-% \end{align*}
-% Isso garante que a geometria original é preservada e que o ponto $\vec p$, definido implicitamente pelos vértices da aresta, é deslocado exatamente pela quantidade desejada.
-
-% \section{Limitações}
-
-% Ao adotar métodos simplificados, abre-se mão de características essenciais de motores físicos completos. Entre as limitações mais relevantes estão:
-% \begin{itemize}
-% 	\item Ausência de conservação precisa de energia e momento, o que reduz o realismo de certas interações.
-% 	\item Incapacidade de simular materiais complexos (ex.: fricção anisotrópica, torques realistas, elasticidade avançada).
-% 	\item Dependência de parâmetros empíricos, sem interpretação física clara.
-% 	% \item Menor robustez para geometrias arbitrárias, especialmente polígonos côncavos ou mal escalonados.
-% 	\item Dificuldade de lidar com sistemas altamente conectados (estruturas rígidas, máquinas, esqueletos).
-% \end{itemize}
-% Essas limitações não invalidam o uso das técnicas, mas reforçam a necessidade do uso da aplicação a cenários onde a prioridade é a responsividade, e não a precisão física.
-
-% \subsection*{Jittering}
-
-% Em sistemas baseados em posições a estabilidade depende fortemente do processo de correção de posições. Um dos problemas mais recorrentes é o \textit{jitter}, um tremor ou oscilação indesejada no posicionamento dos corpos, especialmente perceptível quando múltiplas restrições são aplicadas simultaneamente ou quando o sistema é altamente rígido.
-
-% \subsection*{Empilhamento}
-
-% Métodos simplificados têm dificuldade em manter pilhas estáveis de objetos, principalmente quando as correções não são distribuídas de forma global e consistente. O empilhamento tende a %"escorregar" 
-% ``escorregar'' ou colapsar devido à falta de precisão numérica adequada.
-
-% \subsection*{Tunneling}
-
-% Ocorre quando objetos em alta velocidade atravessam outros sem detectar colisão. Métodos baseados exclusivamente em detecção discreta apresentam maior risco, especialmente quando o passo temporal é grande ou a geometria é fina.
-
