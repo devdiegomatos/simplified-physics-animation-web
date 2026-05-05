@@ -1,11 +1,13 @@
 import { vec3 } from 'gl-matrix';
 
 import type Body from './bodies/Body';
-import ColliderInfo from './core/ColliderInfo';
+// import ColliderInfo from './core/ColliderInfo';
 import { epa } from './core/collision/epa';
 import gjk from './core/collision/gjk';
 import sat from './core/collision/sat';
 import SpatialHashGrid from './core/SpatialHashGrid';
+import ContactManifold from './core/ContactManifold';
+import CollisionSolver from './core/collision/CollisionSolver';
 
 export enum BroadPhaseMode {
     Naive,
@@ -46,7 +48,8 @@ export default class Engine {
 
     public bodies: Body[] = [];
     public contactPairs: [Body, Body][] = [];
-    public collidersInfo: ColliderInfo[] = [];
+    // public collidersInfo: ColliderInfo[] = [];
+    public contactManifolds: ContactManifold[] = [];
 
     public metrics: Metrics = {
         particlesCount: [],
@@ -94,7 +97,8 @@ export default class Engine {
 
         // 2) Limpa dados temporarios do frame anterior.
         this.contactPairs.length = 0;
-        this.collidersInfo.length = 0;
+        // this.collidersInfo.length = 0;
+        this.contactManifolds.length = 0;
 
         // 3) Prepara a grade espacial para receber os corpos atualizados.
         if (this.config.BroadPhase == BroadPhaseMode.GridSpatialPartition) {
@@ -213,10 +217,8 @@ export default class Engine {
 
         // 9) Libera flag de pausa por colisao e fecha as metricas do frame.
         this.skip = false;
-
-        const dt = performance.now() - dtStart;
-        console.log(dt)
-        this.metrics.deltatime.push(dt);
+        const dtEnd = performance.now();
+        this.metrics.deltatime.push(dtEnd - dtStart);
     }
 
     /**
@@ -338,13 +340,22 @@ export default class Engine {
                 this.metrics.trueCollisions.length - 1
             ]++;
 
-            const colliderA = new ColliderInfo(
-                bodyA,
-                vec3.negate(vec3.create(), hit.normal),
-                hit.depth,
+            this.contactManifolds.push(
+                new ContactManifold(
+                    convexHullA,
+                    convexHullB,
+                    hit.normal,
+                    hit.depth,
+                ),
             );
-            const colliderB = new ColliderInfo(bodyB, hit.normal, hit.depth);
-            this.collidersInfo.push(colliderA, colliderB);
+
+            // const collider = new ColliderInfo(
+            //     [bodyA, bodyB],
+            //     hit.normal,
+            //     hit.depth,
+            // );
+            // // const colliderB = new ColliderInfo(bodyB, hit.normal, hit.depth);
+            // this.collidersInfo.push(collider);
         }
     }
 
@@ -364,53 +375,98 @@ export default class Engine {
                 this.metrics.trueCollisions.length - 1
             ]++;
 
-            const mvp = epa(convexHullA, convexHullB, hit);
-            const colliderA = new ColliderInfo(
-                bodyA,
-                vec3.negate(vec3.create(), mvp.normal),
-                mvp.depth,
+            const mtv = epa(convexHullA, convexHullB, hit);
+            this.contactManifolds.push(
+                new ContactManifold(
+                    convexHullA,
+                    convexHullB,
+                    mtv.normal,
+                    mtv.depth,
+                ),
             );
-            const colliderB = new ColliderInfo(bodyB, mvp.normal, mvp.depth);
-            this.collidersInfo.push(colliderA, colliderB);
+
+            // const collider = new ColliderInfo(
+            //     [bodyA, bodyB],
+            //     mtv.normal,
+            //     mtv.depth,
+            // );
+            // // const colliderB = new ColliderInfo(bodyB, mvp.normal, mvp.depth);
+            // this.collidersInfo.push(collider);
         }
     }
 
     public resolveCollisions() {
         // Para cada colisao confirmada, calcula os pontos de contato e corrige posicoes.
-        for (const c of this.collidersInfo) {
-            // The separation direction is pointing away from the colliding points
-            // We should look for the contact edges on the oppositive direction
-            const convexHull = c.body.convexHull();
-            const edge = convexHull.getFarthestEdgeInDirection(
-                vec3.negate(vec3.create(), c.normal),
-            );
-            c.contactPoints = edge.filter((p) => p.isStatic === false);
-            // c.contactPoints = edge;
 
-            if (this.pauseOnCollision && this.skip === false) {
-                this.isPaused = true;
-                // Should not resolve collision, just pause the simulation
-                // however you need to calculate all the contact points for
-                // rendering debug
-                continue;
-            }
+        for (const c of this.contactManifolds) {
+            const contact = c.getContactPoints();
+            // this.isPaused = true;
 
-            // Distribui a correcao de penetracao pelos pontos de contato moveis.
-            for (const particle of c.contactPoints) {
-                if (particle.isStatic) {
-                    continue;
+            const refEdge = contact.points[0];
+            const incEdge = contact.points[1];
+            if (refEdge.length == 2) {
+                if (incEdge.length == 1) {
+                    console.log('Vértice vs Aresta');
+                    const { cA, cB, t } = CollisionSolver.resolveVertexEdge(
+                        incEdge[0].position, // A
+                        refEdge[0].position, // B
+                        refEdge[1].position, // B
+                        contact.isFlipped
+                            ? vec3.negate(vec3.create(), c.normal)
+                            : c.normal,
+                        c.depth,
+                        refEdge[0].isStatic ? Infinity : refEdge[0].mass,
+                        incEdge[0].isStatic ? Infinity : incEdge[0].mass,
+                    );
+
+                    incEdge[0].move(cA);
+                    refEdge[0].move(vec3.scale(vec3.create(), cB, 1 - t));
+                    refEdge[1].move(vec3.scale(vec3.create(), cB, t));
+                } else if (incEdge.length == 2) {
+                    console.log('Aresta vs Aresta');
+                } else {
+                    console.log(
+                        'Unexpected contact points configuration',
+                        contact.points,
+                    );
                 }
-
-                const correction = vec3.scale(
-                    vec3.create(),
-                    c.normal,
-                    c.depth / c.contactPoints.length,
+            } else {
+                console.log(
+                    'Unexpected contact points configuration',
+                    contact.points,
                 );
-                vec3.scale(correction, correction, 1 / particle.mass);
-
-                particle.move(correction);
             }
         }
+        // for (const c of this.collidersInfo) {
+        // The separation direction is pointing away from the colliding points
+        // We should look for the contact edges on the oppositive direction
+        // const convexHull = c.body.convexHull();
+        // const edge = convexHull.getFarthestEdgeInDirection(
+        //     vec3.negate(vec3.create(), c.normal),
+        // );
+        // c.contactPoints = edge.filter((p) => p.isStatic === false);
+        // // c.contactPoints = edge;
+        // if (this.pauseOnCollision && this.skip === false) {
+        //     this.isPaused = true;
+        //     // Should not resolve collision, just pause the simulation
+        //     // however you need to calculate all the contact points for
+        //     // rendering debug
+        //     continue;
+        // }
+        // // Distribui a correcao de penetracao pelos pontos de contato moveis.
+        // for (const particle of c.contactPoints) {
+        //     if (particle.isStatic) {
+        //         continue;
+        //     }
+        //     const correction = vec3.scale(
+        //         vec3.create(),
+        //         c.normal,
+        //         c.depth / c.contactPoints.length,
+        //     );
+        //     vec3.scale(correction, correction, 1 / particle.mass);
+        //     particle.move(correction);
+        // }
+        // }
     }
 
     public addBody(body: Body) {

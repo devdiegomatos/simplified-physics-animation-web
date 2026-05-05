@@ -7,7 +7,7 @@ export default class ColliderInfo {
     public contactPoints: Particle[] = [];
 
     constructor(
-        public body: Body,
+        public bodies: Body[],
         public normal: vec3,
         public depth: number,
     ) {}

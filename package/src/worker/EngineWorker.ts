@@ -56,23 +56,23 @@ function step() {
 
     // 2.2 Extraia os dados de colisão da simulação
     const collidersInfo: PhysicsCollidersInfo[] = [];
-    for (const colliderInfo of engine.collidersInfo) {
-        const convexHull = colliderInfo.body.convexHull();
-        const hull = [];
-        for (const p_hull of convexHull.particles) {
-            hull.push(p_hull.position[0], p_hull.position[1]);
-        }
+    // for (const colliderInfo of engine.collidersInfo) {
+    //     const convexHull = colliderInfo.body.convexHull();
+    //     const hull = [];
+    //     for (const p_hull of convexHull.particles) {
+    //         hull.push(p_hull.position[0], p_hull.position[1]);
+    //     }
 
-        const contactPoints = [];
-        for (const p of colliderInfo.contactPoints) {
-            contactPoints.push(p.position[0], p.position[1]);
-        }
+    //     const contactPoints = [];
+    //     for (const p of colliderInfo.contactPoints) {
+    //         contactPoints.push(p.position[0], p.position[1]);
+    //     }
 
-        collidersInfo.push({
-            convexHull: hull,
-            contactPoints,
-        });
-    }
+    //     collidersInfo.push({
+    //         convexHull: hull,
+    //         contactPoints,
+    //     });
+    // }
 
     // 3. Empacote o estado
     const state: SimulationState = {

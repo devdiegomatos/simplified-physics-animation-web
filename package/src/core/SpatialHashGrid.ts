@@ -7,7 +7,10 @@ import type AABB from './AABB';
 export default class SpatialHashGrid {
     public cells: [number, Body][] = [];
 
-    constructor(protected ncol: number, protected cellSize: number) {}
+    constructor(
+        protected ncol: number,
+        protected cellSize: number,
+    ) {}
 
     insert(body: Body) {
         const aabb = body.getAABB();

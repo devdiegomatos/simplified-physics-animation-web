@@ -12,7 +12,7 @@ export default function gjk(A: PolygonBody, B: PolygonBody): vec3[] | false {
     const d = vec3.subtract(vec3.create(), B.getCenter(), A.getCenter());
 
     // get the first Minkowski Difference point
-    let S = support(A, B, d)
+    let S = support(A, B, d);
     if (vec3.length(S) <= EPSILON) {
         return false;
     }
