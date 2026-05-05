@@ -94,14 +94,21 @@ A Figura~\ref{fig:testes-comparativo} evidencia o impacto direto da etapa da fil
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.85\textwidth]{profiling.png}
-    \caption{Tempo relativo por etapas da nossa implementação. Fonte: Autor.}
-    \label{fig:profiling}
+    \includegraphics[width=0.85\textwidth]{profiling-sat.png}
+    \caption{Tempo relativo por etapas da nossa implementação no modo SAT. Fonte: Autor.}
+    \label{fig:profiling-sat}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{profiling-gjk.png}
+    \caption{Tempo relativo por etapas da nossa implementação no modo GJK. Fonte: Autor.}
+    \label{fig:profiling-gjk}
 \end{figure}
 
 % A análise da Figura~\ref{fig:profiling} revela um alto impacto da etapa de relaxamento da nossa implementação, o que pode ser atribuído à forma como as restrições são processadas e à necessidade de iterar sobre os pares de partículas para aplicar as correções. Essa etapa é fundamental para garantir a estabilidade da simulação, mas também representa um custo computacional significativo, especialmente em cenários com um grande número de objetos e restrições. 
 
-A Figura~\ref{fig:profiling} apresenta um gráfico de área empilhado onde o primeiro item da legenda está na base da pilha. Neste gráfico foi mensurado o tempo relativo de cada etapa da implementação usando SAT. A análise evidencia que a etapa de relaxamento domina o custo total de execução em todos os cenários. Esse comportamento decorre do método proposto por Jakobsen, que, embora simples e estável, requer múltiplas iterações para convergir, aumentando o custo proporcionalmente ao número de restrições e de passos de relaxamento. Neste trabalho foram usados 5 iterações de relaxamento. Observa-se também que a fase de filtragem e refinamento são, respectivamente, as mais custosas depois do relaxamento.
+As Figuras~\ref{fig:profiling-sat} e \ref{fig:profiling-gjk} apresentam um gráfico de área empilhado onde o primeiro item da legenda está na base da pilha. Neste gráfico foi mensurado o tempo relativo de cada etapa da implementação usando SAT e GJK. A análise evidencia que a etapa de relaxamento domina o custo total de execução em todos os cenários. Esse comportamento decorre do método proposto por Jakobsen, que, embora simples e estável, requer múltiplas iterações para convergir, aumentando o custo proporcionalmente ao número de restrições e de passos de relaxamento. Neste trabalho foram usados 5 iterações de relaxamento. Observa-se também que a fase de filtragem e refinamento são, respectivamente, as mais custosas depois do relaxamento, com o GJK apresentando maior custo.
 
 Esses resultados indicam que ganhos de desempenho podem ser obtidos tanto pela redução do número de iterações de relaxamento e o uso de outras estruturas de dados na fase de filtragem, como estruturas hierárquicas. Adicionalmente, a natureza paralelizável dessas etapas sugere o uso de execução multi-thread ou GPU como estratégias promissoras. 
 
