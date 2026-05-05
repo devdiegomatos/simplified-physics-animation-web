@@ -15,7 +15,7 @@ Em sistemas de simulação física e detecção de colisões, a representação 
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=0.7\linewidth]{fecho-convexo-interseccao}
-	\caption{Em (A) os objetos delimitadores não se intersectam, em (B) eles se intersectam porém os objetos não se intersectam, em (C) eles se intersectam e os objetos se intersectam.}
+	\caption{Em (A) os objetos delimitadores não se intersectam, em (B) eles se intersectam porém os objetos não se intersectam, em (C) eles se intersectam e os objetos se intersectam. Fonte: Autor.}
 	\label{fig:fecho-convexo-interseccao}
 \end{figure}
 
@@ -34,7 +34,7 @@ como ilustrado na Figura~\ref{fig:formas-fecho-convexo}.
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{bounding_volumes}
-	\caption{Da esquerda para direita esfera delimitadora, caixa delimitadora alinhada aos eixos, caixa delimitadora orientada, K-DOP e fecho convexo.}
+	\caption{Da esquerda para direita esfera delimitadora, caixa delimitadora alinhada aos eixos, caixa delimitadora orientada, K-DOP e fecho convexo. Fonte: Autor.}
 	\label{fig:formas-fecho-convexo}
 \end{figure}
 
@@ -100,7 +100,7 @@ Apresenta complexidade média $O(n \log n)$ em 2D, assumindo uma distribuição 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\textwidth]{quickhull_steps.jpg}
-    \caption{Etapas do quickhull fonte: \cite{clustering_explanation2024}.}
+    \caption{Etapas do quickhull. Fonte: Adaptado de~\cite{clustering_explanation2024}.}
     \label{fig:quickhull_2d}
 \end{figure}
 
@@ -120,6 +120,7 @@ Uma grade uniforme subdivide o espaço em células de tamanho fixo e igual, asso
 	\caption{Divisão espacial em grade uniforme}
 	\centering
 	\includesvg[width=0.5\textwidth]{uniform-grid}
+	\caption{Fonte: Autor.}
 	\label{fig:grade-uniforme}
 \end{figure}
 
@@ -175,14 +176,15 @@ Em síntese, a escolha de $dt$ representa um compromisso entre precisão e desem
 
 A simulação física em aplicações interativas apresenta elevado custo computacional, especialmente quando envolve integração temporal, detecção de colisões e resolução iterativa de restrições. No contexto da Web, esse custo torna-se ainda mais relevante devido às limitações da thread principal, responsável não apenas pela execução do código da aplicação, mas também pela renderização gráfica, tratamento de eventos de entrada e atualização da interface do usuário. Dessa forma, torna-se necessário discutir estratégias de paralelismo que permitam manter a responsividade da aplicação sem comprometer a estabilidade e a previsibilidade da simulação física.
 
-Uma abordagem amplamente adotada consiste na separação conceitual entre as rotinas de renderização e simulação física. Enquanto a renderização é executada na thread principal, geralmente sincronizada com o ciclo de atualização visual por meio de mecanismos como \textit{requestAnimationFrame}, a simulação física pode ser executada em uma thread separada, utilizando \textit{Web Workers}. Essa separação reduz a probabilidade de bloqueios na interface e permite que o cálculo físico seja realizado de forma assíncrona em relação ao processo de desenho.
+Uma abordagem amplamente adotada consiste na separação conceitual entre as rotinas de renderização e simulação física. Enquanto a renderização é executada na thread principal, geralmente sincronizada com o ciclo de atualização visual por meio de mecanismos como \textit{requestAnimationFrame}
+, a simulação física pode ser executada em uma thread separada, utilizando \textit{Web Workers}. Essa separação reduz a probabilidade de bloqueios na interface e permite que o cálculo físico seja realizado de forma assíncrona em relação ao processo de desenho.
 
 Neste trabalho foi implementando um modelo de separação da thread de renderização e simulação física para o artefato web. A thread responsável pela simulação apenas escreve o estado físico mais atual e a renderização consome apenas o estado físico mais recente disponível, como ilustrado na Figura~\ref{fig:diagrama-threaded}.
 
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\textwidth]{diagrama-threaded}
-	\caption{À esquerda esquema tradicional single-thread. À direita esquema com simulação rodando numa thread dedicada a passo fixo.}
+	\caption{À esquerda esquema tradicional single-thread. À direita esquema com simulação rodando numa thread dedicada a passo fixo. Fonte: Autor.}
 	\label{fig:diagrama-threaded}
 \end{figure}
 

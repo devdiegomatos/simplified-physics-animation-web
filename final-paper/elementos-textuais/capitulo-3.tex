@@ -70,7 +70,7 @@ Geometricamente, o fecho convexo corresponde ao ``invólucro'' mínimo que envol
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=0.7\linewidth]{convex-hull}
-	\caption{Fecho convexo de um conjunto de pontos.}
+	\caption{Fecho convexo de um conjunto de pontos. Fonte: Autor.}
 	\label{fig:convex-hull}
 \end{figure}
 
@@ -87,7 +87,7 @@ Do ponto de vista geométrico, a soma de Minkowski pode ser interpretada como o 
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{soma-minkowski}
-	\caption{Soma de Minkowski, entre os conjuntos A e B.}
+	\caption{Soma de Minkowski, entre os conjuntos A e B. Fonte: Autor.}
 	\label{fig:soma-minkowski}
 \end{figure}
 Uma propriedade muito útil da soma de Minkowski é o fato de que a soma de dois objetos convexos é um objeto convexo. Para um objeto $A$, usamos a notação $-A$ para denotar a reflexão de $A$ sobre a origem O. A diferença de Minkowski $A-B$ pode ser obtida calculando a soma de Minkowski de $A$ e $-B$
@@ -118,7 +118,7 @@ Dessa forma, seja $D$ a diferença de Minkowski de dois objetos convexos $A$ e $
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=0.6\linewidth]{support-function}
-	\caption{A função suporte na forma implícita $A - B$ ao longo da direção $\vec d$.}
+	\caption{A função suporte na forma implícita $A - B$ ao longo da direção $\vec d$. Fonte: Autor.}
 	\label{fig:support_function}
 \end{figure}
 
@@ -128,7 +128,7 @@ Um simplex (plural: \textit{simplices}) é definido como um politopo de $k+1$ v�
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{simplex}
-	\caption{Da esquerda para direita 0-simplex, 1-simplex, 2-simplex e 3-simplex}
+	\caption{Da esquerda para direita 0-simplex, 1-simplex, 2-simplex e 3-simplex. Fonte: Autor.}
 	\label{fig:simplex}
 \end{figure}
 
@@ -136,7 +136,7 @@ O teorema de Carathéodory em 2 dimensões afirma que podemos construir um triâ
 \begin{figure}[htb]
 	\centering
 	\includegraphics[width=0.7\linewidth]{Caratheodorys_theorem_example.png}
-	\caption{Ilustração do teorema de Carathéodory. O ponto $\vec x$ está no interior do fecho convexo de $P$, e também está no interior do fecho convexo de $P'$.}
+	\caption{Ilustração do teorema de Carathéodory. O ponto $\vec x$ está no interior do fecho convexo de $P$, e também está no interior do fecho convexo de $P'$. Fonte:~\cite{caratheodory_wikipedia}}
 	\label{fig:caratheodory}
 \end{figure}
 
@@ -205,7 +205,7 @@ A região do vértice $R$ corresponde a todos os pontos $P$ tais que $(P-R) \cdo
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{gjk-ericson-1simplex.svg}
-	\caption{Divisão de regiões para o caso 1-simplex.}
+	\caption{Divisão de regiões para o caso 1-simplex. Fonte: Adaptado de~\cite{muratori2016implementingGJK}.}
 	\label{fig:gjk-ericson-1simplex}
 \end{figure}
 
@@ -269,7 +269,7 @@ e o interior do $\triangle RST$, como ilustrado na Figura~\ref{fig:gjk-ericson-2
 \begin{figure}[htb]
 	\centering
 	\includesvg[width=\linewidth]{gjk-ericson-2simplex.svg}
-	\caption{Regiões para o caso 2-simplex.}
+	\caption{Regiões para o caso 2-simplex. Fonte: Adaptado de~\cite{muratori2016implementingGJK}.}
 	\label{fig:gjk-ericson-2simplex}
 \end{figure}
 
@@ -405,7 +405,7 @@ Neste trabalho foi implementada uma versão do BGJK apresentada por \citeonline{
 
 \begin{algorithm}[htb]
 	\caption{BGJK}
-	\KwIn{Polígonos convexos $A$ e $B$, direção inicial $\vec d$}
+	\KwIn{Polígonos convexos $A$ e $B$, direção inicial $\vec d$. Fonte:~\cite{muratori2016implementingGJK}}
 	\KwOut{Verdadeiro se A e B se intersectam, falso caso contrário}
 
 	$\vec s \leftarrow S_A(\vec d) - S_B(-\vec d)$ \\
