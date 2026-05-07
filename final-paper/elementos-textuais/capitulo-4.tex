@@ -145,9 +145,7 @@ Depois, a face que faz o maior ângulo com relação à normal da colisão é es
     % \caption{Figuras lado a lado}
 \end{figure}
 
-Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, basta usarmos uma função de suporte para retornar os vértices mais distantes da origem na direção da normal de colisão $\hat n$. 
-% E então aplicarmos as análises de caso (vértice-vértice, vértice-aresta, aresta-aresta) que serão discutidas a seguir para realizar o processo de separação. 
-Então aplicamos as análise de caso a seguir.
+Originalmente, o próximo passo seria recortar a aresta incidente utilizando os planos definidos pela aresta de referência num processo similar ao algoritmo de Sutherland-Hodgman~\cite{collision_manifolds_2017}. Porém, uma vez definidas as arestas de referência e incidente, podemos inferir que os vértices da aresta de referência fazem parte do manifold de colisão e, dos dois vértices da aresta incidente, escolhemos aquele cujo produto escalar com $-\hat n$ é máximo. Então, aplicamos a análise de caso a seguir.
 
 Existem dois casos possíveis de retorno neste método adaptado de recorte. O caso de retornar 3 pontos é o mais comum, onde um vértice de um objeto penetra a face do outro objeto. O caso de retornar 4 pontos é um caso raro de aresta-aresta. O processo de separação é discutido a seguir. Os casos de 0, 1 ou 2 pontos de contato não são possíveis pois sempre detectamos a interpenetração entre dois objetos.
 
@@ -190,7 +188,7 @@ De modo que o corpo de menor massa recebe maior fração da correção, e vice-v
 	\label{fig:processo-separacao}
 \end{figure}
 
-Considere um vértice $p \in A$ e uma aresta $\overline{rs} \in B$, definida pelos vértices $r$ e $s$.  Seja $w$ o ponto de penetração, correspondente à projeção ortogonal de $p$ sobre a aresta:
+Considere um vértice $p \in A$ e uma aresta $\overline{rs} \in B$, definida pelos vértices $r$ e $s$. Seja $w$ um ponto na aresta $\overline{rs}$, correspondente à projeção ortogonal de $p$ sobre a aresta:
 $$
 \alpha = \frac{(p - r) \cdot (s - r)}{\|s - r\|^2}, \quad \alpha \in [0,1]
 $$
@@ -198,7 +196,7 @@ $$
 $$
 w = r + \alpha (s - r)
 $$
-O objetivo é deslocar $p$ e $w$ para uma nova posição comum $w'$, tal que:
+O objetivo é deslocar $p$ e $w$ para o ponto de contato $w'$, tal que:
 $$
 w' = w + \vec c_B = p + \vec c_A
 $$
@@ -207,7 +205,7 @@ $$
 p' = p + \vec c_A
 $$
 
-Para a aresta, a correção $\vec c_B$ deve ser distribuída entre os vértices $r$ e $s$ da aresta de forma ponderada pelo parâmetro $t$, de modo que o vértice mais próximo de $w$ receba maior fração do deslocamento.
+Para a aresta, a correção $\vec c_B$ deve ser distribuída entre os vértices $r$ e $s$ da aresta de forma ponderada pelo parâmetro $\alpha$, de modo que o vértice mais próximo de $w$ receba maior fração do deslocamento.
 $$
 r' = r + (1 - \alpha)\vec c_B, \quad
 s' = s + \alpha \vec c_B
@@ -215,17 +213,4 @@ $$
 
 \subsection*{Caso Aresta--Aresta}
 
-Este é um caso raro, considera-se a interação entre duas arestas $\overline{pq} \in A$ e $\overline{rs} \in B$. Sejam $w$ e $t$ os pontos mais próximos entre as duas arestas, que podem ser expressos como:
-$$
-	w = r + \alpha (s - r), \quad
-	t = q + \beta (p - q)
-$$
-com $\alpha, \beta \in [0,1]$.
-
-De forma análoga ao caso anterior, correção é então distribuída entre os quatro vértices:
-\begin{align*}
-	p' = p - (1 - \alpha)\vec c_A, \quad
-	q' = q - \alpha \vec c_A, \\
-	r' = r + (1 - \beta)\vec c_B, \quad
-	s' = s + \beta \vec c_B
-\end{align*}
+Este é um caso raro. Caracterizado por duas arestas $\overline{pq} \in A$ e $\overline{rs} \in B$ que são paralelas. Neste trabalho, optamos por tratar esse caso como uma colisão vértice-aresta selecionando o vértice da aresta incidente mais próximo da aresta de referência para aplicar a correção. 
