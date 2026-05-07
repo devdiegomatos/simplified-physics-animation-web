@@ -223,27 +223,6 @@ async function setup(p: p5) {
 
             scene.add(body);
         }
-
-        // for (let i = 0; i < totalEntities; i++) {
-        //     const x = Math.random() * worldBoundings;
-        //     const y = Math.random() * worldBoundings;
-
-        //     const type = Math.random();
-        //     const isStatic = Math.random() < 0.2 ? true : false;
-        //     const size = gridSize;
-        //     let body: Body;
-        //     if (type <= 0.25) {
-        //         body = new TriangleBody(x, y, size, isStatic);
-        //     } else if (type <= 0.5) {
-        //         body = new RectangleBody(x, y, size, size / 2, isStatic);
-        //     } else if (type <= 0.75) {
-        //         body = PolygonBody.PolygonBuilder(x, y, size, 5, isStatic);
-        //     } else {
-        //         body = PolygonBody.PolygonBuilder(x, y, size, 6, isStatic);
-        //     }
-
-        //     scene.add(body);
-        // }
     }
 }
 
