@@ -1,13 +1,13 @@
 import { vec3 } from 'gl-matrix';
 
 import type Body from './bodies/Body';
-// import ColliderInfo from './core/ColliderInfo';
 import { epa } from './core/collision/epa';
 import gjk from './core/collision/gjk';
 import sat from './core/collision/sat';
 import SpatialHashGrid from './core/SpatialHashGrid';
 import ContactManifold from './core/ContactManifold';
 import CollisionSolver from './core/collision/CollisionSolver';
+import type { IConstraint, Particle } from './core';
 
 export enum BroadPhaseMode {
     Naive,
@@ -47,8 +47,10 @@ export default class Engine {
     public gravity: vec3;
 
     public bodies: Body[] = [];
+    public particles: Particle[] = [];
+    public constraints: IConstraint[] = [];
+    
     public contactPairs: [Body, Body][] = [];
-    // public collidersInfo: ColliderInfo[] = [];
     public contactManifolds: ContactManifold[] = [];
 
     public metrics: Metrics = {
@@ -109,24 +111,35 @@ export default class Engine {
         }
 
         // Acumuladores de metricas deste frame.
-        let sumParticles = 0,
-            sumConstraints = 0,
-            integrationTime = 0,
+        let integrationTime = 0,
             gridInitTime = 0;
 
         // 4) Atualiza todos os corpos (integracao) e popula a grade quando habilitada.
-        for (const body of this.bodies) {
-            sumParticles += body.particles.length;
-            sumConstraints += body.constraints.length;
+        // for (const body of this.bodies) {
+        //     sumParticles += body.particles.length;
+        //     sumConstraints += body.constraints.length;
 
-            // Invalida caches geometricos, pois as particulas podem ter se movido.
+        //     // Invalida caches geometricos, pois as particulas podem ter se movido.
+        //     body.aabb = null;
+        //     body._convexHull = null;
+
+        //     const start = performance.now();
+        //     this.integrate(body, dt);
+        //     const end = performance.now();
+        //     integrationTime += end - start;
+
+        //     // Indexa o corpo na grade para reduzir pares testados no broad phase.
+        //     if (this.config.BroadPhase == BroadPhaseMode.GridSpatialPartition) {
+        //         const start = performance.now();
+        //         this.spatialHashGrid?.insert(body);
+        //         const end = performance.now();
+        //         gridInitTime += end - start;
+        //     }
+        // }
+        this.integrate(dt);
+        for (const body of this.bodies) {
             body.aabb = null;
             body._convexHull = null;
-
-            const start = performance.now();
-            this.integrate(body, dt);
-            const end = performance.now();
-            integrationTime += end - start;
 
             // Indexa o corpo na grade para reduzir pares testados no broad phase.
             if (this.config.BroadPhase == BroadPhaseMode.GridSpatialPartition) {
@@ -138,8 +151,10 @@ export default class Engine {
         }
 
         // 5) Registra metricas de estado e custo da etapa de integracao.
-        this.metrics.particlesCount.push(sumParticles);
-        this.metrics.constraintsCount.push(sumConstraints);
+        // this.metrics.particlesCount.push(sumParticles);
+        // this.metrics.constraintsCount.push(sumConstraints);
+        this.metrics.particlesCount.push(this.particles.length);
+        this.metrics.constraintsCount.push(this.constraints.length);
         this.metrics.integrationTime.push(integrationTime);
         this.metrics.gridInitTime.push(gridInitTime);
 
@@ -226,9 +241,9 @@ export default class Engine {
      * @param body
      * @returns
      */
-    integrate(body: Body, dt: number) {
+    integrate(dt: number) {
         // Verlet: x(t+dt) = x(t) + (x(t)-x(t-dt)) + a*dt^2
-        for (const particle of body.particles) {
+        for (const particle of this.particles) {
             if (particle.isStatic) continue;
 
             const velocity = vec3.subtract(
@@ -253,30 +268,28 @@ export default class Engine {
      */
     satisfyConstraints() {
         for (let i = 0; i < this.NUM_ITERATIONS; i++) {
-            for (const body of this.bodies) {
-                // Primeiro, aplica limites de mundo para evitar fuga da simulacao.
-                for (const particle of body.particles) {
-                    const x = Math.max(
-                        Math.min(
-                            particle.position[0],
-                            this.config.worldBoundings.right[0],
-                        ),
-                        this.config.worldBoundings.top[0],
-                    );
-                    const y = Math.max(
-                        Math.min(
-                            particle.position[1],
-                            this.config.worldBoundings.right[1],
-                        ),
-                        this.config.worldBoundings.top[1],
-                    );
-                    vec3.set(particle.position, x, y, 0);
-                }
+            // Primeiro, aplica limites de mundo para evitar fuga da simulacao.
+            for (const particle of this.particles) {
+                const x = Math.max(
+                    Math.min(
+                        particle.position[0],
+                        this.config.worldBoundings.right[0],
+                    ),
+                    this.config.worldBoundings.top[0],
+                );
+                const y = Math.max(
+                    Math.min(
+                        particle.position[1],
+                        this.config.worldBoundings.right[1],
+                    ),
+                    this.config.worldBoundings.top[1],
+                );
+                vec3.set(particle.position, x, y, 0);
+            }
 
-                // Depois, relaxa as restricoes internas do corpo.
-                for (const constraint of body.constraints) {
-                    constraint.relax();
-                }
+            // Depois, relaxa as restricoes internas do corpo.
+            for (const constraint of this.constraints) {
+                constraint.relax();
             }
         }
     }
@@ -331,9 +344,6 @@ export default class Engine {
         const convexHullA = bodyA.convexHull();
         const convexHullB = bodyB.convexHull();
 
-        // The direction of the separation plane goes from A to B
-        // So the separation required for A is in the oppositive direction
-        // SAT retorna normal e profundidade de penetracao quando ha interseccao.
         const hit = sat(convexHullA, convexHullB);
         if (hit) {
             this.metrics.trueCollisions[
@@ -348,14 +358,6 @@ export default class Engine {
                     hit.depth,
                 ),
             );
-
-            // const collider = new ColliderInfo(
-            //     [bodyA, bodyB],
-            //     hit.normal,
-            //     hit.depth,
-            // );
-            // // const colliderB = new ColliderInfo(bodyB, hit.normal, hit.depth);
-            // this.collidersInfo.push(collider);
         }
     }
 
@@ -366,9 +368,6 @@ export default class Engine {
         const convexHullA = bodyA.convexHull();
         const convexHullB = bodyB.convexHull();
 
-        // The direction of the separation plane goes from A to B!
-        // So the separation required for A is in the oppositive direction
-        // GJK detecta interseccao; EPA calcula vetor minimo de separacao.
         const hit = gjk(convexHullA, convexHullB);
         if (hit) {
             this.metrics.trueCollisions[
@@ -384,14 +383,6 @@ export default class Engine {
                     mtv.depth,
                 ),
             );
-
-            // const collider = new ColliderInfo(
-            //     [bodyA, bodyB],
-            //     mtv.normal,
-            //     mtv.depth,
-            // );
-            // // const colliderB = new ColliderInfo(bodyB, mvp.normal, mvp.depth);
-            // this.collidersInfo.push(collider);
         }
     }
 
@@ -406,7 +397,7 @@ export default class Engine {
             const incEdge = contact.points[1];
             if (refEdge.length == 2) {
                 if (incEdge.length == 1) {
-                    console.log('Vértice vs Aresta');
+                    // console.log('Vértice vs Aresta');
                     const { cA, cB, t } = CollisionSolver.resolveVertexEdge(
                         incEdge[0].position, // A
                         refEdge[0].position, // B
@@ -423,7 +414,7 @@ export default class Engine {
                     refEdge[0].move(vec3.scale(vec3.create(), cB, 1 - t));
                     refEdge[1].move(vec3.scale(vec3.create(), cB, t));
                 } else if (incEdge.length == 2) {
-                    console.log('Aresta vs Aresta');
+                    // console.log('Aresta vs Aresta');
                 } else {
                     console.log(
                         'Unexpected contact points configuration',
@@ -437,39 +428,12 @@ export default class Engine {
                 );
             }
         }
-        // for (const c of this.collidersInfo) {
-        // The separation direction is pointing away from the colliding points
-        // We should look for the contact edges on the oppositive direction
-        // const convexHull = c.body.convexHull();
-        // const edge = convexHull.getFarthestEdgeInDirection(
-        //     vec3.negate(vec3.create(), c.normal),
-        // );
-        // c.contactPoints = edge.filter((p) => p.isStatic === false);
-        // // c.contactPoints = edge;
-        // if (this.pauseOnCollision && this.skip === false) {
-        //     this.isPaused = true;
-        //     // Should not resolve collision, just pause the simulation
-        //     // however you need to calculate all the contact points for
-        //     // rendering debug
-        //     continue;
-        // }
-        // // Distribui a correcao de penetracao pelos pontos de contato moveis.
-        // for (const particle of c.contactPoints) {
-        //     if (particle.isStatic) {
-        //         continue;
-        //     }
-        //     const correction = vec3.scale(
-        //         vec3.create(),
-        //         c.normal,
-        //         c.depth / c.contactPoints.length,
-        //     );
-        //     vec3.scale(correction, correction, 1 / particle.mass);
-        //     particle.move(correction);
-        // }
-        // }
     }
 
     public addBody(body: Body) {
+        for (const p of body.particles) this.particles.push(p);
+        for (const c of body.constraints) this.constraints.push(c);
+        
         this.bodies.push(body);
     }
 }
