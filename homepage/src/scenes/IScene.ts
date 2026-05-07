@@ -8,4 +8,5 @@ export default interface IScene {
     getParticlesCount(): number;
     getCollisionsCount(): number;
     getConstraintsCount(): number;
+    togglePause(): void;
 }

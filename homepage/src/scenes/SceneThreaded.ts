@@ -100,4 +100,8 @@ export default class SceneThreaded implements IScene {
     getConstraintsCount(): number {
         return this.simulation_state.constraintsCount;
     }
+
+    togglePause(): void {
+        // TODO
+    }
 }
