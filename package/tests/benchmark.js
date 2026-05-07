@@ -29,6 +29,7 @@ function parseArg(name, fallback) {
 }
 
 function benchmark(testCase, objects) {
+    // Estimativa do tamanho da célula para que haja uma distribuição homogenea
     const gridArea = testCase.worldBoundings ** 2;
     // const cellSize = Math.sqrt(gridArea / (objects * 5));
     const cellSize = Math.sqrt(gridArea / (objects * Math.PI));
@@ -47,7 +48,7 @@ function benchmark(testCase, objects) {
     const bodies = utils.generateBodies(
         objects,
         testCase.worldBoundings,
-        cellSize,
+        cellSize * 1.2,
     );
     for (const body of bodies) {
         engine.addBody(body);
@@ -94,7 +95,7 @@ for (let i = 0; i < rowsCount; i++) {
         }
         row += `${metrics[key][i]},`;
     }
-    rows += row.slice(0, -1) + '\n';
+    rows += row + '\n';
 }
 
 const header = keys.join(',') + '\n';

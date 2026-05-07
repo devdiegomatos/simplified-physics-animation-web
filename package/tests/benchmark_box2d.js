@@ -20,6 +20,26 @@ const CONFIG = {
 // FUNÇÕES AUXILIARES
 // ======================
 
+const isDigitsOnly = (str) => /^\d+$/.test(str);
+
+function parseArg(name, fallback) {
+    const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
+    if (!arg) {
+        return fallback;
+    }
+
+    const param = arg.split('=')[1];
+    if (!param) {
+        return fallback;
+    }
+
+    if (isDigitsOnly(param)) {
+        return parseInt(param);
+    }
+    
+    return param
+}
+
 // Gera polígono convexo aleatório
 function createRandomConvexPolygon(radius = 1, vertices = 4) {
     const pts = [];
@@ -49,7 +69,7 @@ function createBoundary(world) {
 // Cria obstáculos estáticos
 function createObstacles(world, size) {
     const body = world.createBody({
-        position: Vec2((Math.random() - 0.5) * CONFIG.worldSize, Math.random() * CONFIG.worldSize),
+        position: Vec2(Math.random() * CONFIG.worldSize, Math.random() * CONFIG.worldSize),
     });
 
     body.createFixture(planck.Box(size, size));
@@ -60,7 +80,7 @@ function createDynamicBodies(world, size = 1) {
     const body = world.createBody({
         type: 'dynamic',
         position: Vec2(
-            (Math.random() - 0.5) * CONFIG.worldSize,
+            Math.random() * CONFIG.worldSize,
             Math.random() * CONFIG.worldSize,
         ),
         linearDamping: 0.1,
@@ -80,28 +100,10 @@ function createDynamicBodies(world, size = 1) {
     });
 }
 
-function exportCSV(metrics, name) {
-    const dir = 'tests/results/box2d';
-
-    if (!existsSync(dir)) {
-        mkdirSync(dir, { recursive: true });
-    }
-
-    const header = 'collisions,dt\n';
-    let rows = '';
-    for (let i = 0; i < metrics.rowsCount; i++) {
-        rows += `${metrics.collisionTests[i]},${metrics.dt[i]}\n`;
-    }
-
-    writeFileSync(`${dir}/${name}.csv`, header + rows);
-}
-
 // ======================
 // BENCHMARK
 // ======================
 function benchmark(objects) {
-    console.log(`[benchmark] ${objects} objetos`);
-
     seedrandom('10000', { global: true });
     const start = performance.now();
 
@@ -150,18 +152,15 @@ function benchmark(objects) {
     const end = performance.now();
     const total = end - start;
 
-    exportCSV(metrics, `box2d-${objects}-objects-${new Date().toISOString()}`);
-
-    console.log(`- tempo total: ${total.toFixed(3)} ms`);
+    return metrics
 }
 
-function main() {
-    console.log('Iniciando benchmark\n');
+const objs = parseArg('objects');
+const metrics = benchmark(objs);
 
-    for (let objects = 100; objects <= 1000; objects += 100) {
-        benchmark(objects);
-    }
-
-    console.log('Todos os testes finalizaram com sucesso.');
+const header = 'collisions,dt\n';
+let rows = '';
+for (let i = 0; i < metrics.rowsCount; i++) {
+    rows += `${metrics.collisionTests[i]},${metrics.dt[i]}\n`;
 }
-main();
+process.stdout.write(header + rows);
