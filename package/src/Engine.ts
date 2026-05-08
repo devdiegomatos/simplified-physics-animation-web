@@ -396,7 +396,7 @@ export default class Engine {
             const refEdge = contact.points[0];
             const incEdge = contact.points[1];
             if (refEdge.length == 2) {
-                if (incEdge.length == 1) {
+                if (incEdge.length == 1 || incEdge.length == 2) {
                     // console.log('Vértice vs Aresta');
                     const { cA, cB, t } = CollisionSolver.resolveVertexEdge(
                         incEdge[0].position, // A
@@ -413,8 +413,6 @@ export default class Engine {
                     incEdge[0].move(cA);
                     refEdge[0].move(vec3.scale(vec3.create(), cB, 1 - t));
                     refEdge[1].move(vec3.scale(vec3.create(), cB, t));
-                } else if (incEdge.length == 2) {
-                    // console.log('Aresta vs Aresta');
                 } else {
                     console.log(
                         'Unexpected contact points configuration',
