@@ -1,0 +1,993 @@
+\documentclass[aspectratio=169, 12pt]{beamer}
+
+% ── Pacotes ─────────────────────────────────────────────────
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{multicol}
+
+% ── Configuração de listings (código) ───────────────────────
+\lstset{
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\bfseries,
+  numbers=left, numbersep=5pt,
+  frame=single,
+  breaklines=true, showstringspaces=false,
+  language=Java
+}
+
+% ── Metadados ───────────────────────────────────────────────
+\title{Animação Física Simplificada em Web}
+\subtitle{Trabalho de Conclusão de Curso}
+\author[Autor]{Diego Vasconcelos Schardosim de Matos\\[4pt]
+  {\small Orientador: Prof.\ Nome do Orientador}}
+\institute{Universidade Federal do Rio de Janeiro\\
+  Instituto de Computação}
+\date{\today}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+% ── Slide de título ─────────────────────────────────────────
+\maketitle
+
+% ── Sumário ─────────────────────────────────────────────────
+\begin{frame}{Sumário}
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+% ============================================================
+\section{Introdução}
+% ============================================================
+
+\begin{frame}{Motivação}
+    \begin{itemize}
+        \item Computação Gráfica combina matemática e arte para
+              representar fenômenos complexos \cite{azevedo2003}
+        \item Aplicações interativas exigem realismo visual
+              \textbf{e} alto desempenho ($\geq$\,6\,FPS)
+        \item Animação física une dois domínios:
+          \begin{itemize}
+            \item \textbf{Geometria} — detecção e cálculo de contatos
+            \item \textbf{Física} — evolução dinâmica dos corpos
+          \end{itemize}
+        \item Método de Jakobsen~\cite{jakobsen2001advanced}: esquema
+              simplificado sem torques, matrizes de orientação nem
+              tensores de inércia explícitos — mas com lacunas a explorar
+      \end{itemize}
+\end{frame}
+
+\begin{frame}{Pipeline de animação física}
+    \begin{enumerate}
+        \item Definição dos corpos
+        \item Integração numérica
+        \item Detecção de colisões
+        \item Resposta às colisões
+        \item Renderização (WebGL)
+    \end{enumerate}
+    
+    \vspace{0.3cm}
+    \begin{alertblock}{}
+        \footnotesize
+        Motores de referência: Havok, PhysX, Bullet, Box2D — todos inspiram a proposta Web deste trabalho.
+    \end{alertblock}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Objetivos}
+  \begin{block}{Objetivo Geral}
+    Desenvolver um protótipo de animação física 2D para a Web,
+    inspirado no método de Jakobsen, com detecção e resposta a colisões.
+  \end{block}
+
+  \vspace{0.4cm}
+  \textbf{Objetivos Específicos:}
+  \begin{enumerate}
+    \item Revisar os principais conceitos de animação baseada em
+          física e integração numérica
+    \item Implementar algoritmos de detecção e resposta a colisão
+    \item Desenvolver simulação física baseada em partículas e
+          restrições pelo método de Jakobsen~\cite{jakobsen2001advanced}
+    \item Aplicar técnicas de otimização e processamento
+          \textit{multi-threaded}
+    \item Avaliar o desempenho e a estabilidade do sistema em
+          diferentes cenários (\textit{benchmarks})
+  \end{enumerate}
+\end{frame}
+
+% ============================================================
+\section{Animação Baseada em Física}
+% ============================================================
+
+\begin{frame}{Conceitos}
+  \begin{columns}[T]
+    \column{0.50\textwidth}
+      \begin{block}{\textit{Keyframe} vs.\ Física}
+        \begin{itemize}
+          \item \textbf{\textit{Keyframe}:} animador define manualmente
+                posições e rotações ao longo do tempo
+          \item \textbf{Física:} comportamento \textit{emerge} de forças,
+                restrições e interações entre corpos
+        \end{itemize}
+      \end{block}
+    \column{0.47\textwidth}
+      \textbf{Ciclo de simulação:}
+      \begin{enumerate}
+        \item Coleta e soma de forças\\(gravidade, vento, atrito\ldots)
+        \item Integração temporal das\\equações de movimento
+        \item Detecção e resposta\\a colisões
+        \item Atualização de posições\\e renderização
+      \end{enumerate}
+  \end{columns}
+
+    \begin{alertblock}{Foco: verossimilhança visual}
+        O objetivo \textbf{não} é precisão científica, mas
+        \textbf{plausibilidade} — transmitir sensação convincente de
+        peso, inércia e colisão ao usuário.
+    \end{alertblock}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Representação dos Corpos}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+      \begin{block}{Corpo Rígido}
+        Forma e volume \textbf{invariáveis}
+        % . Representado por grandezas globais:
+        % \begin{itemize}
+        %   \item Posição $\vec{p}$ (centro de massa)
+        %   \item Orientação $R$ (matriz ou quatérnio)
+        %   \item Velocidades linear $\vec{v}$ e angular $\vec{\omega}$
+        %   \item Massa $m$ e tensor de inércia $I$
+        % \end{itemize}
+      \end{block}
+    \column{0.48\textwidth}
+      \begin{block}{Corpo Deformável}
+        Forma varia sob forças externas. 
+        % Modelado por sistemas de
+        % \textbf{partículas + molas} (\textit{massa-mola}):
+        % \[
+        %   \vec{F}_{\text{el}} = -k_s\bigl(|\vec{x}_i - \vec{x}_j| - L_0\bigr)
+        %     \frac{\vec{x}_i - \vec{x}_j}{|\vec{x}_i - \vec{x}_j|}
+        % \]
+        % \[
+        %   \vec{F}_{\text{am}} = -k_d\,(\vec{v}_i - \vec{v}_j)
+        %     \frac{\vec{x}_i - \vec{x}_j}{|\vec{x}_i - \vec{x}_j|}
+        % \]
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Método de Integração Numérica}
+  \begin{block}{Método de Verlet \cite{jakobsen2001advanced}}
+    Método de segunda ordem que \textbf{não armazena velocidade
+    explicitamente}. A nova posição é calculada a partir das posições
+    atual e anterior:
+    \[
+      \vec{x}_{t+\Delta t} = 2\,\vec{x}_t - \vec{x}_{t-\Delta t}
+        + \vec{a}_t\,\Delta t^2
+    \]
+    Velocidade derivada implicitamente quando necessária:
+    \[
+      \vec{v}_t \approx
+        \frac{\vec{x}_{t+\Delta t} - \vec{x}_{t-\Delta t}}{2\,\Delta t}
+    \]
+  \end{block}
+\end{frame}
+
+\begin{frame}
+    \textbf{Vantagens}
+    \begin{itemize}
+        \item Estável sob restrições geométricas
+        \item Menos armazenamento por partícula
+        \item Método adotado por Jakobsen
+    \end{itemize}
+
+    \textbf{Comparação com Euler semi-implícito}
+    \begin{itemize}
+        \item Euler: $\vec{v}_{t+\Delta t}$ calculada explicitamente
+        \item Verlet: velocidade embutida na diferença de posições
+        \item Ambos adequados para tempo real
+    \end{itemize}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Restrições Geométricas — Jakobsen}
+  \begin{block}{Restrição de distância (linear)}
+    Mantém distância fixa $d$ entre partículas $i$ e $j$ a todo instante:
+    \[
+      |\vec{x}_i - \vec{x}_j| = d
+    \]
+    Após cada passo de integração, as partículas são \textbf{projetadas}
+    de volta para a configuração válida.
+  \end{block}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Resolvendo Restrições Concorrentes por Relaxamento}
+  \begin{block}{Método iterativo de Jakobsen (Gauss-Seidel)}
+    Restrições são resolvidas \textbf{sequencialmente} e repetidas até
+    convergência — geralmente 3 a 5 iterações são suficientes.
+  \end{block}
+
+  \vspace{0.2cm}
+  \textbf{Algoritmo de relaxamento para restrição linear:}
+  \[
+    \vec{\delta} = \vec{x}_2 - \vec{x}_1, \qquad
+    c = \frac{\|\vec{\delta}\| - d}{\|\vec{\delta}\|}
+  \]
+  \[
+    \vec{x}_1 \leftarrow \vec{x}_1 - \epsilon\,\vec{\delta}\,c, \qquad
+    \vec{x}_2 \leftarrow \vec{x}_2 + \epsilon\,\vec{\delta}\,c
+  \]
+
+  \begin{itemize}
+    \item $\epsilon = 1$: partículas movidas \textit{imediatamente}
+            para a posição correta (haste rígida)
+    \item $\epsilon < 1$: convergência gradual (mola rígida)
+    \item Mais iterações $\Rightarrow$ animação mais rígida
+            visualmente
+    \end{itemize}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Estrutura Topológica para Tecidos}
+  Partículas organizadas em grade; estabilidade depende dos tipos de
+  conexão:
+
+  \vspace{0.3cm}
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+      \begin{enumerate}
+        \item \textbf{Restrições estruturais} — vizinhos diretos (horizontal e
+              vertical); resistem à tração e compressão básicas
+        \item \textbf{Restrições de cisalhamento} — vizinhos diagonais; impedem
+              distorção e deslizamento da malha
+        \item \textbf{Restrições de flexão} — vizinhos alternados (pulam um
+              nó); resistem à dobra e conferem rigidez à curvatura
+      \end{enumerate}
+    \column{0.42\textwidth}
+      \begin{tikzpicture}[scale=0.72]
+        \foreach \x in {0,1,2} \foreach \y in {0,1,2}
+          \filldraw[black] (\x,\y) circle (2.5pt);
+        \foreach \x in {0,1} \foreach \y in {0,1,2}
+          \draw[black, thick] (\x,\y) -- (\x+1,\y);
+        \foreach \x in {0,1,2} \foreach \y in {0,1}
+          \draw[black, thick] (\x,\y) -- (\x,\y+1);
+        \foreach \x in {0,1} \foreach \y in {0,1} {
+          \draw[gray, dashed] (\x,\y) -- (\x+1,\y+1);
+          \draw[gray, dashed] (\x+1,\y) -- (\x,\y+1);
+        }
+        \draw[black, thick] (3.2,1.8) -- (3.8,1.8)
+          node[right, font=\tiny] {Estrut.};
+        \draw[gray, dashed] (3.2,1.3) -- (3.8,1.3)
+          node[right, font=\tiny] {Cisalh.};
+      \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Detecção de Colisões}
+% ============================================================
+ 
+% ── Slide 1: Visão geral ────────────────────────────────────
+\begin{frame}{Detecção de Colisões — Visão Geral}
+  \begin{block}{Objetivo}
+    Identificar quando dois objetos entram em contato e fornecer
+    informações geométricas (vetor de penetração, normal) para a etapa
+    de resposta física.
+  \end{block}
+ 
+    Dois algoritmos estudados e implementados, ambos eficientes para
+    objetos \textbf{convexos}:
+    \begin{itemize}
+        \item \textbf{SAT} — Teorema do Eixo Separador
+        \item \textbf{GJK} — Gilbert-Johnson-Keerthi
+    \end{itemize}
+\end{frame}
+ 
+% ── Slide 2: SAT ────────────────────────────────────────────
+\begin{frame}{Teorema do Eixo Separador (SAT)}
+  \begin{block}{Teorema}
+    Dois polígonos convexos $A$ e $B$ \textbf{não se intersectam} se, e
+    somente se, existe um hiperplano separador $P$ tal que $A$ está de
+    um lado de $P$ e $B$ está do outro \cite{ericson2004real}.
+  \end{block}
+ 
+  \vspace{0.3cm}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      \textbf{Ideia prática:} testar as normais das arestas de ambos os
+      polígonos como eixos candidatos. Para cada eixo $\hat{n}$:
+      \[
+        \text{Sobreposição} \iff
+        \max_A \geq \min_B \;\wedge\; \max_B \geq \min_A
+      \]
+      Se \textit{qualquer} eixo separar as projeções, os objetos
+      \textbf{não colidem} e o algoritmo encerra imediatamente.
+    \column{0.45\textwidth}
+      % Inserir figura do eixo separador (eixo-separador.svg)
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{1.8cm}
+          \textit{[figura: eixo separador]}
+          \vspace{1.8cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 3: GJK — Diferença de Minkowski ───────────────────
+\begin{frame}{Algoritmo GJK — Fundamentos}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      \begin{block}{Ideia central}
+        Dois objetos $A$ e $B$ se intersectam se, e somente se, a
+        \textbf{diferença de Minkowski} (CSO) contém a origem:
+        \[
+          A - B = \{\,\vec{x} - \vec{y} \mid \vec{x} \in A,\; \vec{y} \in B\,\}
+        \]
+        \[
+          d(A,B) = \min_{c \in \text{CSO}} \|\,c\,\|
+        \]
+      \end{block}
+      \vspace{0.2cm}
+      O CSO \textbf{não é calculado explicitamente}. Em vez disso,
+      amostras são obtidas sob demanda pela \textbf{função suporte}:
+      \[
+        S_{A-B}(\vec{d}) = S_A(\vec{d}) - S_B(-\vec{d})
+      \]
+    \column{0.45\textwidth}
+      % Inserir figura da soma/diferença de Minkowski (soma-minkowski.svg)
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{2.8cm}
+          \textit{[figura: diferença de Minkowski]}
+          \vspace{2.8cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 4: GJK — Simplex e algoritmo ──────────────────────
+\begin{frame}{Algoritmo GJK — Iteração sobre Simplices}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      O GJK constrói iterativamente \textbf{simplices} dentro do CSO,
+      aproximando-se da origem:
+      \begin{itemize}
+        \item 0-simplex: ponto
+        \item 1-simplex: segmento
+        \item 2-simplex: triângulo (em 2D)
+      \end{itemize}
+      A cada iteração, um novo ponto de suporte $\vec{s}$ é adicionado.
+      Se $\vec{s} \cdot \vec{d} \leq 0$, a origem \textbf{não pertence}
+      ao CSO — sem colisão.
+    \column{0.45\textwidth}
+      % Inserir figura dos simplices (simplex.svg)
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{2.8cm}
+          \textit{[figura: 0, 1, 2-simplex]}
+          \vspace{2.8cm}}}
+      \end{center}
+  \end{columns}
+  \vspace{0.2cm}
+  O procedimento \textbf{NearestSimplex} reduz o simplex ao subconjunto
+  mínimo que contém o ponto mais próximo da origem e atualiza a direção
+  de busca $\vec{d}$.
+\end{frame}
+ 
+% ── Slide 5: Subalgoritmo de Ericson — 1-simplex ────────────
+\begin{frame}{Subalgoritmo de Ericson — Caso 1-simplex}
+  Segmento $RS$ divide o espaço em \textbf{três regiões}:
+  região do vértice $R$, região do vértice $S$ e região da aresta
+  $\vec{rs}$.
+  % NOTA: Ericson usa o termo "regiões de Voronoi" de forma equivocada;
+  % o correto é apenas "regiões", pois há dois sítios e duas regiões
+  % de Voronoi, não três.
+ 
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+      \begin{itemize}
+        \item Origem na \textbf{região de $R$}: descarta $S$,
+              $\vec{d} = \vec{ro}$
+        \item Origem na \textbf{região de $S$}: descarta $R$,
+              $\vec{d} = \vec{so}$
+        \item Origem na \textbf{região da aresta}: mantém $\{R,S\}$,
+              $\vec{d} = (\vec{rs} \times \vec{ro}) \times \vec{rs}$
+      \end{itemize}
+      \vspace{0.2cm}
+      Regiões de vértice estão além do limite do CSO $\Rightarrow$
+      origem nessas regiões implica \textbf{sem colisão}.
+    \column{0.48\textwidth}
+      % Inserir figura das regiões do 1-simplex (gjk-ericson-1simplex.svg)
+      \begin{center}
+        \vspace{0.2cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{2.8cm}
+          \textit{[figura: regiões do 1-simplex]}
+          \vspace{2.8cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 6: Subalgoritmo de Ericson — 2-simplex ────────────
+\begin{frame}{Subalgoritmo de Ericson — Caso 2-simplex}
+  Triângulo $RST$ possui \textbf{7 regiões}, mas o histórico de
+  construção elimina 4 delas. Verifica-se apenas: aresta $\vec{rs}$,
+  aresta $\vec{rt}$ e interior do $\triangle RST$.
+ 
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      Seja $\vec{n} = \vec{rs} \times \vec{rt}$:
+      \begin{itemize}
+        \item Se $(\vec{n} \times \vec{rs}) \cdot \vec{ro} > 0$
+              $\Rightarrow$ origem na região de $\vec{rs}$:
+              executar caso 1-simplex$(\{R,S\})$
+        \item Se $(\vec{rt} \times \vec{n}) \cdot \vec{ro} > 0$
+              $\Rightarrow$ origem na região de $\vec{rt}$:
+              executar caso 1-simplex$(\{R,T\})$
+        \item Caso contrário $\Rightarrow$ origem no interior
+              do triângulo: \textbf{colisão detectada}
+      \end{itemize}
+    \column{0.45\textwidth}
+      % Inserir figura das regiões do 2-simplex (gjk-ericson-2simplex.svg)
+      \begin{center}
+        \vspace{0.2cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{3.0cm}
+          \textit{[figura: regiões do 2-simplex]}
+          \vspace{3.0cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Resposta a Colisões}
+% ============================================================
+ 
+% ── Slide 1: Conceitos e métodos ────────────────────────────
+\begin{frame}{Resposta a Colisões — Conceitos}
+  \begin{block}{Duas operações principais}
+    \begin{enumerate}
+      \item \textbf{Correção de posição:} eliminar a interpenetração
+      \item \textbf{Correção de velocidade:} evitar novo contato imediato
+    \end{enumerate}
+  \end{block}
+ 
+  \vspace{0.3cm}
+  \textbf{Principais abordagens na literatura:}
+  \begin{itemize}
+    \item \textbf{Método do Impulso} — aplica impulsos instantâneos que
+          alteram velocidades preservando momento linear e angular
+          (Havok, Bullet)
+    \item \textbf{Método de Penalidades} — forças de repulsão
+          proporcionais à penetração (modelo mola-amortecimento);
+          simples, mas sensível a parâmetros de rigidez
+    \item \textbf{Restrições + Lagrange} — formulação robusta; exige
+          solução de sistemas lineares — oneroso em plataformas Web
+    \item \textbf{Jakobsen (este trabalho)} — colisões tratadas como
+          \textbf{restrições geométricas} corrigidas por posição,
+          dentro do laço de relaxamento
+  \end{itemize}
+\end{frame}
+ 
+% ── Slide 2: Manifold de colisão ────────────────────────────
+\begin{frame}{Pontos de Contato e Manifold de Colisão}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      \begin{block}{Pontos de contato}
+        Posições onde dois objetos se tocam. Obtidos a partir da
+        geometria no instante em que se detecta a interpenetração.
+        Podem ser um único ponto (vértice-face) ou múltiplos (face-face).
+      \end{block}
+      \vspace{0.3cm}
+      \begin{block}{Manifold de colisão}
+        Estrutura que agrega os pontos de contato com:
+        \begin{itemize}
+          \item \textbf{Normal de colisão} $\hat{n}$ — direção de
+                separação entre os objetos
+          \item \textbf{Profundidade de penetração} $d$ por ponto
+          \item Identificadores de arestas/faces envolvidas
+        \end{itemize}
+      \end{block}
+    \column{0.45\textwidth}
+      % Inserir figura do manifold de colisão
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{4.5cm}
+          \textit{[figura: manifold de colisão]}
+          \vspace{4.5cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 3: SAT com MTV ────────────────────────────────────
+\begin{frame}{SAT com Cálculo do MTV}
+  \begin{block}{Vetor de Translação Mínima (MTV)}
+    Extensão do SAT: em vez de encerrar ao encontrar um eixo separador,
+    \textbf{todos os eixos são testados}. O eixo com a
+    \textbf{menor sobreposição} fornece a normal de contato $\hat{n}$ e
+    a profundidade de penetração $\delta$.
+  \end{block}
+ 
+  \vspace{0.3cm}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      Para cada aresta normal $\hat{n}$ de $A$ e $B$:
+      \[
+        \Delta = \text{sobreposição das projeções de } A \text{ e } B
+      \]
+      \begin{itemize}
+        \item Se $\Delta \leq \epsilon$ $\Rightarrow$ \textbf{sem colisão},
+              retorna imediatamente
+        \item Se $\Delta < \delta_{\min}$ $\Rightarrow$ atualiza MTV:
+              $\delta \leftarrow \Delta$,\; $\hat{n}_{\text{MTV}} \leftarrow \hat{n}$
+      \end{itemize}
+      Ao fim, $(\hat{n}_{\text{MTV}},\, \delta)$ descrevem a menor
+      translação para separar os objetos.
+    \column{0.45\textwidth}
+      % Inserir figura do MTV / sobreposição mínima
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{4.0cm}
+          \textit{[figura: SAT com MTV]}
+          \vspace{4.0cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 4: EPA ────────────────────────────────────────────
+\begin{frame}{Algoritmo de Expansão de Politopos (EPA)}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      \begin{block}{Motivação}
+        O GJK detecta a colisão, mas não fornece $\hat{n}$ nem $\delta$.
+        O EPA resolve o problema dual: encontrar o \textbf{MTV} a partir
+        do simplex final do GJK.
+      \end{block}
+      \vspace{0.2cm}
+      \textbf{Iteração:}
+      \begin{enumerate}
+        \item Selecionar a \textbf{aresta mais próxima} da origem
+        \item $\vec{p}$: ponto mais próximo da origem na aresta
+              ($\|\vec{p}\|$ = limite \textit{inferior} de $\delta$)
+        \item $\vec{w} = S_{\text{CSO}}(\vec{p})$: novo vértice na
+              fronteira do CSO
+              ($\|\vec{w}\|$ = limite \textit{superior} de $\delta$)
+        \item Subdividir a aresta em $\vec{w}$; repetir até
+              $\|\vec{w}\| - \|\vec{p}\| < \epsilon$
+      \end{enumerate}
+      Retorna: normal $\hat{n}_e$ e profundidade $\delta$.
+    \column{0.45\textwidth}
+      % Inserir figura das iterações do EPA (epa.jpg)
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{5.2cm}
+          \textit{[figura: iterações do EPA]}
+          \vspace{5.2cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 5: Cálculo dos pontos de contato ──────────────────
+\begin{frame}{Cálculo dos Pontos de Contato}
+  Após obter $\hat{n}$ e $\delta$ (via SAT+MTV ou EPA), identificam-se
+  as arestas e vértices envolvidos por um \textbf{método adaptado de
+  recorte}:
+ 
+  \begin{enumerate}
+    \item Para cada objeto, selecionar o \textbf{vértice mais distante}
+          ao longo de $\hat{n}$; verificar os dois adjacentes e escolher
+          a aresta que faz o maior ângulo com $\hat{n}$
+    \item A aresta \textbf{mais perpendicular} a $\hat{n}$ torna-se a
+          \textbf{aresta de referência}; a outra é a
+          \textbf{aresta incidente}
+    \item Vértices da aresta de referência + vértice incidente com maior
+          produto escalar com $-\hat{n}$ formam o manifold
+  \end{enumerate}
+ 
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+      % Inserir figura das arestas envolvidas (collision-manifold-2.svg)
+      \begin{center}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2cm}
+          \textit{[figura: arestas envolvidas]}
+          \vspace{2.2cm}}}
+      \end{center}
+    \column{0.48\textwidth}
+      % Inserir figura referência/incidente (collision-manifold-3.svg)
+      \begin{center}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{2.2cm}
+          \textit{[figura: aresta ref.\ e incidente]}
+          \vspace{2.2cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+ 
+% ── Slide 6: Processo de separação ──────────────────────────
+\begin{frame}{Processo de Separação — Jakobsen}
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+      Correção total: $\vec{c} = d \cdot \hat{n}$,\;
+      distribuída pelas massas inversas:
+      \[
+        \vec{c}_A = -\frac{w_B}{w_A+w_B}\,\vec{c},\qquad
+        \vec{c}_B = +\frac{w_A}{w_A+w_B}\,\vec{c}
+      \]
+ 
+      \textbf{Caso vértice--aresta}
+      (vértice $p \in A$, aresta $\overline{rs} \in B$):
+      \[
+        \alpha = \frac{(p-r)\cdot(s-r)}{\|s-r\|^2},\qquad
+        w = r + \alpha(s-r)
+      \]
+      \[
+        p' = p + \vec{c}_A
+      \]
+      \[
+        r' = r + (1-\alpha)\,\vec{c}_B,\quad
+        s' = s + \alpha\,\vec{c}_B
+      \]
+      O vértice mais próximo de $w$ recebe maior fração da
+      correção, preservando a coerência geométrica da aresta.
+ 
+      \vspace{0.15cm}
+      \textbf{Caso aresta--aresta:} tratado como vértice-aresta,
+      selecionando o vértice incidente mais próximo da aresta de
+      referência.
+    \column{0.42\textwidth}
+      % Inserir figura do processo de separação (processo-separacao.svg)
+      \begin{center}
+        \vspace{0.3cm}
+        \fbox{\parbox{0.88\linewidth}{\centering\vspace{5.5cm}
+          \textit{[figura: separação vértice-aresta]}
+          \vspace{5.5cm}}}
+      \end{center}
+  \end{columns}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Resposta a Colisões — Projeção de Posição}
+  Dado contato com normal $\hat{\mathbf{n}}$ e penetração $d$:
+
+  \[
+    \vec{\delta} = \hat{\mathbf{n}} \cdot
+      \frac{\max(d - \epsilon,\, 0)}{m_A^{-1} + m_B^{-1}}
+  \]
+
+  \vspace{0.2cm}
+  Correção das posições:
+  \[
+    \vec{x}_A \mathrel{+}= m_A^{-1}\,\vec{\delta}, \qquad
+    \vec{x}_B \mathrel{-}= m_B^{-1}\,\vec{\delta}
+  \]
+
+  \begin{exampleblock}{Consistência com o método de Jakobsen}
+    A resposta a colisões é tratada como uma \textbf{restrição de
+    distância mínima} entre os corpos, projetando as posições diretamente
+    — sem necessidade de calcular impulsos explícitos.
+  \end{exampleblock}
+\end{frame}
+
+% ============================================================
+\section{Otimizações}
+% ============================================================
+ 
+% ── Slide 1: Problema — complexidade quadrática ──────────────
+\begin{frame}{Otimizações — O Problema}
+  \begin{block}{Complexidade ingênua}
+    Com $n$ objetos, o número de pares a testar é:
+    \[
+      \frac{n(n-1)}{2} = O(n^2)
+    \]
+    Mesmo para valores moderados de $n$, esse custo torna-se
+    impraticável em tempo real.
+  \end{block}
+\end{frame}
+
+\begin{frame}
+    \textbf{Solução:} separar a detecção em duas fases:
+      \begin{enumerate}
+        \item \textbf{Filtragem (\textit{Broad Phase})} — descartar
+              rapidamente pares impossíveis com testes baratos e
+              conservadores
+        \item \textbf{Refinamento (\textit{Narrow Phase})} — aplicar
+              SAT / GJK / EPA apenas nos pares candidatos restantes
+      \end{enumerate}
+      \vspace{0.2cm}
+      A premissa fundamental: objetos só podem colidir se estiverem
+      \textbf{suficientemente próximos}.
+
+      \begin{alertblock}{Redução esperada}
+        Em cenários bem comportados, a filtragem reduz a complexidade
+        para $O(n)$ ou $O(n \log n)$, embora no pior caso (todos
+        concentrados em poucas células) possa regredir a $O(n^2)$.
+      \end{alertblock}
+\end{frame}
+ 
+% ── Slide 2: Objetos delimitadores ──────────────────────────
+\begin{frame}{Objetos Delimitadores}
+  Substituem a geometria original por formas mais simples para
+    testes rápidos de sobreposição. Propriedade fundamental:
+    \begin{itemize}
+    \item Se os delimitadores \textbf{não} se intersectam
+            $\Rightarrow$ os objetos \textbf{definitivamente não}
+            colidem
+    \item Se se intersectam $\Rightarrow$ \textit{possível} colisão
+            (falso positivo admissível)
+    \end{itemize}
+\end{frame}
+ 
+% ── Slide 3: Grade uniforme — estrutura ─────────────────────
+\begin{frame}{Filtragem com Grade Uniforme}
+    O espaço é subdividido em células de tamanho fixo $C$. Cada
+    objeto é associado às células interceptadas pela sua AABB:
+    \[
+    i = \left\lfloor \frac{x}{C} \right\rfloor, \qquad
+    j = \left\lfloor \frac{y}{C} \right\rfloor
+    \]
+    Chave linear da célula:
+    \[
+    Key_{\text{cell}} = i + j \times n_{\text{col}}
+    \]
+    Os pares $(Key_{\text{cell}},\, Index_{\text{obj}})$ são
+    armazenados em um array e \textbf{ordenados} pela chave.
+    Objetos na mesma célula ficam contíguos — favorece localidade
+    de cache.
+
+    \vspace{0.2cm}
+    Dois objetos são \textbf{candidatos} somente se
+    compartilharem ao menos uma célula.
+\end{frame}
+ 
+% ── Slide 4: Grade uniforme — deduplicação e parâmetros ─────
+\begin{frame}{Filtragem — Deduplicação e Escolha de $C$}
+    \textbf{Eliminação de duplicatas} ao percorrer o array ordenado:
+      \begin{enumerate}
+        \item Par $(A,B)$ testado por ordem — nunca repetir $(B,A)$
+        \item Objeto grande interceptando múltiplas células pode gerar
+              o mesmo par em células distintas — testar uma única vez
+      \end{enumerate}
+ 
+      \vspace{0.3cm}
+      \textbf{Escolha do tamanho de célula $C$:}
+      \begin{itemize}
+        \item Idealmente cada objeto ocupa $\approx$ 1 célula
+              (máx.\ 4 em 2D)
+        \item $C$ pequeno demais: custo de atualização elevado
+        \item $C$ grande demais: muitos objetos por célula,
+              filtragem ineficaz
+        \item Grande variação de escala: considerar abordagens
+              hierárquicas
+      \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \begin{block}{Estratégia de reconstrução}
+        A grade é \textbf{reconstruída a cada passo de tempo} a
+        partir de um array linear com contador zerado. Trade-off
+        deliberado: simplicidade e previsibilidade em vez de
+        atualizações incrementais.
+        \end{block}
+        \vspace{0.3cm}
+        \begin{exampleblock}{Narrow Phase}
+        Após a filtragem, os pares candidatos passam ao
+        refinamento via \textbf{SAT} ou \textbf{GJK+EPA} para
+        confirmação precisa da colisão.
+    \end{exampleblock}
+\end{frame}
+
+% ============================================================
+\section{Resultados}
+% ============================================================
+ 
+% ── Slide 1: Metodologia ────────────────────────────────────
+\begin{frame}{Metodologia de Testes}
+  Quatro configurações avaliadas, variando o número de objetos
+  de 100 a 1000 (incrementos de 100), com 180 quadros por configuração:
+ 
+  \vspace{0.3cm}
+  \begin{enumerate}
+    \item SAT \textbf{sem} fase de filtragem
+    \item SAT \textbf{com} grade uniforme na filtragem
+    \item GJK/EPA \textbf{sem} fase de filtragem
+    \item GJK/EPA \textbf{com} grade uniforme na filtragem
+  \end{enumerate}
+ 
+  \vspace{0.3cm}
+  \begin{itemize}
+    \item Testes executados \textbf{sem visualização} — isola o custo
+          computacional da detecção de colisão
+    \item Distribuição inicial por \textit{Poisson Disk Sampling}
+          — amostras uniformes com distância mínima garantida
+    \item Semente pseudoaleatória fixa para reprodutibilidade
+    \item Métricas: tempo médio de execução, número de testes de
+          colisão e tempo por etapa da simulação
+  \end{itemize}
+\end{frame}
+ 
+% ── Slide 2: Impacto da filtragem ───────────────────────────
+\begin{frame}{Impacto da Filtragem — Número de Testes de Colisão}
+  \begin{center}
+    % Inserir figura comparativo-testes-colisao.png
+    \fbox{\parbox{0.88\linewidth}{\centering\vspace{5.5cm}
+      \textit{[figura: número médio de testes de colisão (escala log)]}
+      \vspace{5.5cm}}}
+  \end{center}
+ 
+  \vspace{0.2cm}
+  A grade uniforme reduz drasticamente o número de pares avaliados.
+  Resultados em \textbf{escala logarítmica} pela diferença de ordens
+  de grandeza entre os cenários com e sem filtragem.
+\end{frame}
+ 
+% ── Slide 3: Profiling SAT ──────────────────────────────────
+\begin{frame}{Tempo por Etapa — Modo SAT}
+  \begin{center}
+    % Inserir figura profiling-sat.png
+    \fbox{\parbox{0.88\linewidth}{\centering\vspace{5.8cm}
+      \textit{[figura: tempo relativo por etapa — modo SAT]}
+      \vspace{5.8cm}}}
+  \end{center}
+ 
+  \vspace{0.2cm}
+  A etapa de \textbf{relaxamento} domina o custo total em todos os
+  cenários, seguida por filtragem e refinamento.
+\end{frame}
+ 
+% ── Slide 4: Profiling GJK ──────────────────────────────────
+\begin{frame}{Tempo por Etapa — Modo GJK/EPA}
+  \begin{center}
+    % Inserir figura profiling-gjk.png
+    \fbox{\parbox{0.88\linewidth}{\centering\vspace{5.8cm}
+      \textit{[figura: tempo relativo por etapa — modo GJK/EPA]}
+      \vspace{5.8cm}}}
+  \end{center}
+ 
+  \vspace{0.2cm}
+  O GJK/EPA apresenta \textbf{maior custo} na fase de refinamento
+  em relação ao SAT. O relaxamento permanece dominante.
+\end{frame}
+ 
+% ── Slide 5: Gargalo do relaxamento ─────────────────────────
+\begin{frame}{Análise: Gargalo do Relaxamento}
+  \begin{block}{Por que o relaxamento domina?}
+    O método de Jakobsen exige \textbf{múltiplas iterações} (5 neste
+    trabalho) para convergir. O custo cresce proporcionalmente ao
+    número de restrições e passos de relaxamento.
+  \end{block}
+ 
+  \vspace{0.3cm}
+  \textbf{Caminhos para otimização identificados:}
+  \begin{itemize}
+    \item Reduzir o número de iterações de relaxamento
+    \item Substituir a grade uniforme por estruturas hierárquicas
+          (BVH, \textit{Quadtree}) na filtragem
+    \item Paralelizar etapas via \textbf{multi-thread} (Web Workers)
+    \item Delegar cálculos intensivos à GPU via \textbf{WebGPU}
+  \end{itemize}
+\end{frame}
+ 
+% ── Slide 6: Comparação com Planck.js ───────────────────────
+\begin{frame}{Comparação com \textit{Planck.js} — Tempo de Execução}
+  \begin{center}
+    % Inserir figura comparativo-tempo-execução.png
+    \fbox{\parbox{0.88\linewidth}{\centering\vspace{5.5cm}
+      \textit{[figura: tempo médio de execução — nossa impl.\ vs Planck.js]}
+      \vspace{5.5cm}}}
+  \end{center}
+ 
+  \vspace{0.2cm}
+  A \textit{Planck.js} apresenta desempenho superior em todos os
+  cenários avaliados.
+\end{frame}
+ 
+% ── Slide 7: Análise da comparação ──────────────────────────
+\begin{frame}{Por que \textit{Planck.js} é mais rápida?}
+  \begin{block}{Nossa implementação}
+    \begin{itemize}
+      \item Resolução por \textbf{relaxamento iterativo} (Jakobsen)
+            — múltiplas iterações por passo de tempo
+      \item Filtragem via \textbf{grade uniforme} — simples, mas menos
+            adaptativa a variações de escala
+    \end{itemize}
+  \end{block}
+ 
+  \vspace{0.3cm}
+  \begin{block}{\textit{Planck.js} (baseada no Box2D)}
+    \begin{itemize}
+      \item Resolução por \textbf{impulsos} — colisões resolvidas
+            diretamente no nível dos corpos rígidos, mais eficiente
+            por passo de tempo
+      \item Filtragem com \textbf{árvore dinâmica de AABB}
+            — hierárquica, mais adaptada a cenários heterogêneos
+    \end{itemize}
+  \end{block}
+ 
+  \begin{alertblock}{}
+    O objetivo deste trabalho não é superar a \textit{Planck.js}, mas
+    oferecer uma implementação \textbf{didática, modular e aberta},
+    que evidencie cada etapa do pipeline de simulação física.
+  \end{alertblock}
+\end{frame}
+ 
+% ============================================================
+\section{Conclusão}
+% ============================================================
+ 
+\begin{frame}{Conclusões}
+  \begin{itemize}
+    \item Foi implementado um motor de animação física funcional
+          inteiramente em JavaScript/WebGL
+    \item A integração de Verlet mostrou-se adequada e estável
+          para simulações em tempo real no navegador
+    \item O método de Jakobsen por relaxamento de restrições
+          proporcionou comportamento visualmente plausível
+    \item Desempenho satisfatório para aplicações interativas
+          típicas ($\leq 300$ corpos a 60\,FPS)
+    \item Código aberto e bem documentado — adequado para uso didático
+  \end{itemize}
+\end{frame}
+ 
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Trabalhos Futuros}
+  \begin{enumerate}
+    \item Implementar grade espacial / BVH para fase ampla mais eficiente
+    \item Adicionar suporte a articulações e restrições angulares
+    \item Explorar WebGPU para cálculos físicos em GPU
+    \item Estender para 3D com suporte a quatérnios
+  \end{enumerate}
+\end{frame}
+
+% ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+\begin{frame}{Referências}
+  \footnotesize
+  \begin{thebibliography}{9}
+    \bibitem{azevedo2003}
+      E.~Azevedo, A.~Conci.
+      \textit{Computação Gráfica}.
+      Campus, 2003.
+ 
+    \bibitem{jakobsen2001advanced}
+      T.~Jakobsen.
+      Advanced character physics.
+      \textit{Game Developer Conference}, 2001.
+ 
+    \bibitem{ericson2004}
+      C.~Ericson.
+      \textit{Real-Time Collision Detection}.
+      Morgan Kaufmann, 2004.
+ 
+    \bibitem{box2d_physics}
+      E.~Catto.
+      \textit{Box2D — A 2D Physics Engine for Games}.
+      \url{https://box2d.org/}, 2007.
+ 
+    \bibitem{matterjs}
+      L.~Brewer.
+      \textit{Matter.js — 2D Physics Engine for the Web}.
+      \url{https://brm.io/matter-js/}, 2014.
+  \end{thebibliography}
+\end{frame}
+
+% ── Slide final ─────────────────────────────────────────────
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\Large\textbf{Obrigado!}}\\[1cm]
+    Dúvidas e discussão\\[0.8cm]
+    \texttt{diegovsm@ic.ufjr.br}
+  \end{center}
+  \vfill
+\end{frame}
+
+\end{document}
