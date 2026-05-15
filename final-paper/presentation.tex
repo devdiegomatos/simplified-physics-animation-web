@@ -14,6 +14,8 @@
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric}
 \usepackage{svg}
 \usepackage{hyperref}
+\usepackage{algpseudocode}   % fornece o ambiente algorithmic
+\usepackage{algorithmicx}    % base do algpseudocode
 
 \graphicspath{ {./figuras/} }
 
@@ -52,8 +54,10 @@
         \item Desafio educacional e técnico
       \end{itemize}
     \column{0.49\textwidth}
-      % Figura: cena de animação física (ex: objetos caindo, tecido balançando)
-      \begin{center}\textit{[figura: exemplo de animação física na web]}\end{center}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{Unreal-Engine-4.23-Chaos.jpg}
+      \end{figure}
   \end{columns}
 \end{frame}
 
@@ -100,15 +104,15 @@
 \begin{frame}{\textit{Keyframe} vs.\ Baseada em Física}
   \begin{columns}[c]
     \column{0.49\textwidth}
-      % Figura: linha do tempo com quadros-chave marcados e poses
-      % do animador definidas manualmente (ex: boneco em A→B→C)
-      \begin{center}\textit{[figura: animação keyframe — poses manuais]}\end{center}
-      \begin{center}\small Poses definidas manualmente\end{center}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{blender-3d-keyframe-animation.jpg}
+      \end{figure}
     \column{0.49\textwidth}
-      % Figura: objetos caindo com trajetórias emergindo de gravidade
-      % e restrições, sem intervenção do animador
-      \begin{center}\textit{[figura: comportamento físico emergente]}\end{center}
-      \begin{center}\small Comportamento \textbf{emerge} das leis físicas\end{center}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{thumbnail-Sculpt-Sim-Pose-BN.jpg}
+      \end{figure}
   \end{columns}
   \vspace{0.3cm}
   \begin{alertblock}{}
@@ -116,29 +120,38 @@
   \end{alertblock}
 \end{frame}
 
-% ── Verlet ──────────────────────────────────────────────────
-\begin{frame}{Integração de Verlet}
+% ── Partículas ───────────────────────────────────────────────
+\begin{frame}{Partículas}
   \begin{columns}[c]
-    \column{0.50\textwidth}
-      \[
-        \vec{x}_{t+\Delta t} = 2\,\vec{x}_t - \vec{x}_{t-\Delta t}
-          + \vec{a}_t\,\Delta t^2
-      \]
-      \[
-        \vec{v}_t \approx \frac{\vec{x}_{t+\Delta t} - \vec{x}_{t-\Delta t}}{2\,\Delta t}
-      \]
+    \column{0.45\textwidth}
+      Não simulamos o objeto como um todo, simulamos cada \textbf{partícula} que o compõe.
       \vspace{0.4cm}
-      % Figura: eixo do tempo com três marcas (t-Δt, t, t+Δt)
-      % e setas curvadas mostrando que x(t+Δt) usa x(t) e x(t-Δt),
-      % sem caixa de velocidade
-      \begin{center}\textit{[figura: linha do tempo Verlet]}\end{center}
-    \column{0.47\textwidth}
-      \begin{exampleblock}{Vantagens}
-        \begin{itemize}
-          \item Estável sob restrições
-          \item Velocidade implícita
-        \end{itemize}
-      \end{exampleblock}
+      \begin{itemize}
+        \item Posição $\vec{x}$
+        \item Forças aplicadas (ex: gravidade $\vec{g}$)
+      \end{itemize}
+    \column{0.52\textwidth}
+      \begin{figure}
+        \centering
+        \includesvg[width=0.7\textwidth]{particulas}
+      \end{figure}
+  \end{columns}
+\end{frame}
+ 
+% ── Formas Geométricas ───────────────────────────────────────
+\begin{frame}{Formas Geométricas}
+  \begin{columns}[c]
+    \column{0.45\textwidth}
+      Um objeto é um conjunto de \textbf{partículas} associado a
+      uma \textbf{forma geométrica}.
+ 
+      \vspace{0.4cm}
+      Neste trabalho: apenas \textbf{formas convexas}.
+    \column{0.52\textwidth}
+      \begin{figure}
+        \centering
+        \includesvg[width=0.7\textwidth]{grupo-particulas}
+      \end{figure}
   \end{columns}
 \end{frame}
 
@@ -155,44 +168,31 @@
       \begin{figure}
         \centering
         \includesvg[width=\textwidth]{restricao-linear}
-        % Figura existente: p1 e p2 com distância inválida sendo
-        % corrigida por projeção para a distância d correta
       \end{figure}
   \end{columns}
 \end{frame}
 
 % ── Relaxamento ─────────────────────────────────────────────
-\begin{frame}{Relaxamento de Gauss-Seidel}
-  % Figura: três painéis lado a lado mostrando a mesma rede de
-  % partículas em (1) estado inicial com restrições violadas,
-  % (2) após 1 iteração parcialmente corrigida,
-  % (3) após 5 iterações totalmente convergida
-  \begin{center}
-    \textit{[figura: convergência em 3 etapas — 0, 1 e 5 iterações]}
-  \end{center}
-  \vspace{0.2cm}
-  \begin{center}
-    Resolver localmente e repetir $\approx$ \textbf{3 a 5 vezes}
-    converge o sistema global.
-  \end{center}
+\begin{frame}{Resolvendo Restrições por Relaxamento}
+  \begin{columns}
+    \column{0.5\textwidth}
+      Resolver localmente e repetir $\approx$ \textbf{3 a 5 vezes} converge o sistema global.
+  
+    \column{0.5\textwidth}
+      \begin{algorithmic}[1]
+        \State $\vec{\delta} \leftarrow \vec{x}_2 - \vec{x}_1$
+        \State $c \leftarrow \dfrac{\|\vec{\delta}\| - d}{\|\vec{\delta}\|}$
+        \State $\vec{x}_1 \leftarrow \vec{x}_1 - \epsilon\,\vec{\delta}\,c$
+        \State $\vec{x}_2 \leftarrow \vec{x}_2 + \epsilon\,\vec{\delta}\,c$
+      \end{algorithmic}
+  \end{columns}
 \end{frame}
 
 % ── Corpos ──────────────────────────────────────────────────
 \begin{frame}{Representação dos Corpos}
-  \begin{columns}[c]
-    \column{0.49\textwidth}
-      \begin{block}{\centering Rígido}
-        % Figura: polígono convexo com vetor posição p e seta de
-        % velocidade v indicados sobre o centro de massa
-        \begin{center}\textit{[figura: corpo rígido — $\vec p$, $\vec v$]}\end{center}
-      \end{block}
-    \column{0.49\textwidth}
-      \begin{block}{\centering Deformável — massa-mola}
-        % Figura: grid de partículas com molas coloridas: preto para
-        % estruturais, cinza tracejado para cisalhamento
-        \begin{center}\textit{[figura: grade massa-mola]}\end{center}
-      \end{block}
-  \end{columns}
+  \begin{figure}
+    \includegraphics[width=0.9\textwidth]{physics-of-jellycar.png}
+  \end{figure}
 \end{frame}
 
 % ── Estrutura topológica ─────────────────────────────────────
@@ -253,27 +253,35 @@
 
 % ── Minkowski ───────────────────────────────────────────────
 \begin{frame}{Algoritmo de Gilbert-Johnson-Keerthi (GJK)}
-  \begin{columns}[c]
-    \column{0.42\textwidth}
+  \begin{figure}
+    \centering
+    \includesvg[width=0.9\linewidth]{soma-minkowski}
+  \end{figure}
+
+  \[
+    A - B = \{\,\vec{x}{-}\vec{y} \mid \vec{x}{\in}A,\,\vec{y}{\in}B\,\}
+  \]
+  \vspace{0.3cm}
+  \[
+    A \cap B \neq \emptyset \;\iff\; \mathbf{0} \in A{-}B
+  \]
+\end{frame}
+
+\begin{frame}{Função Suporte}
+  \begin{columns}
+    \column{0.4\textwidth}
       \[
-        A - B = \{\,\vec{x}{-}\vec{y} \mid \vec{x}{\in}A,\,\vec{y}{\in}B\,\}
+        S_A(\vec d) = \arg\max_{\vec a \in A} (\vec d \cdot \vec a)
       \]
-      \vspace{0.3cm}
       \[
-        A \cap B \neq \emptyset \;\iff\; \mathbf{0} \in A{-}B
+        S_{A-B}(\vec{d}) = S_A(\vec{d}) - S_B(-\vec{d})
       \]
     \column{0.55\textwidth}
       \begin{figure}
         \centering
-        \includesvg[width=\linewidth]{soma-minkowski}
-        % Figura existente: A, B e CSO com origem dentro (colisão)
-        % e fora (sem colisão)
+        \includesvg[width=\linewidth]{support-function}
       \end{figure}
   \end{columns}
-\end{frame}
-
-\begin{frame}{Função de Suporte}
-  
 \end{frame}
 
 % ── Simplex ──────────────────────────────────────────────────
@@ -353,10 +361,12 @@
   \begin{columns}[c]
     \column{0.5\textwidth}
       \textbf{Pontos de Contato}
+      
+      Inferidos a partir da região de intersecção entre dois objetos.
 
     \column{0.5\textwidth}
       \textbf{Manifold de Colisão}
-      \vspace{0.3cm}
+      
       \begin{itemize}
         \item Normal $\hat{n}$
         \item Profundidade $d$
@@ -376,9 +386,6 @@
       \begin{figure}
         \centering
         \includegraphics[width=0.8\textwidth]{eixo-separador-2.png}
-        \caption{Fonte:}
-        % Figura existente: dois polígonos com múltiplos eixos de teste,
-        % cada um com seu intervalo de projeção, e o MTV destacado
       \end{figure}
   \end{columns}
 \end{frame}
@@ -446,34 +453,46 @@
   \end{columns}
 \end{frame}
 
+% ── Verlet ──────────────────────────────────────────────────
+\begin{frame}{Integração de Verlet}
+  \begin{columns}[c]
+    \column{0.50\textwidth}
+      \[
+        \vec{x}_{t+\Delta t} = 2\,\vec{x}_t - \vec{x}_{t-\Delta t}
+          + \vec{a}_t\,\Delta t^2
+      \]
+      \[
+        \vec{v}_t \approx \frac{\vec{x}_{t+\Delta t} - \vec{x}_{t-\Delta t}}{2\,\Delta t}
+      \]
+    \column{0.47\textwidth}
+      \begin{exampleblock}{Vantagens}
+        \begin{itemize}
+          \item Estável sob restrições
+          \item Velocidade implícita
+        \end{itemize}
+      \end{exampleblock}
+  \end{columns}
+\end{frame}
+
 % ============================================================
 \section{Otimizações}
 % ============================================================
 
 % ── Broad / Narrow ──────────────────────────────────────────
-\begin{frame}{Broad Phase / Narrow Phase}
-  % Figura: dois gráficos lado a lado
-  % Esquerdo: curva crescente O(n²) com label "sem filtragem"
-  % Direito: curva sublinear O(n log n) com label "com filtragem"
-  % Eixo x = nº objetos, eixo y = pares testados
-  \begin{center}
-    \textit{[figura: curvas $O(n^2)$ vs.\ $O(n \log n)$]}
-  \end{center}
-  \vspace{0.3cm}
+\begin{frame}{Filtragem e Refinamento}
   \begin{columns}[c]
     \column{0.49\textwidth}
-      \begin{block}{\centering Broad Phase}
-        \centering Descartar pares impossíveis — barato
+      \begin{block}{\centering Fase de Filtragem\\ (Broad Phase)}
+        \centering Descartar pares impossíveis usando objetos delimitadores.
       \end{block}
     \column{0.49\textwidth}
-      \begin{block}{\centering Narrow Phase}
-        \centering SAT / GJK+EPA — apenas candidatos
+      \begin{block}{\centering Fase de Refinamento\\ (Narrow Phase)}
+        \centering Usar algoritmos sofisticados como SAT / GJK+EPA apenas nos pares candidatos
       \end{block}
   \end{columns}
-\end{frame}
 
-% ── AABB ────────────────────────────────────────────────────
-\begin{frame}{Objetos Delimitadores}
+  \vfill
+
   \begin{figure}
     \centering
     \includesvg[width=\linewidth]{bounding_volumes}
@@ -481,16 +500,21 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{}
+% ── AABB ────────────────────────────────────────────────────
+\begin{frame}
   \begin{columns}[c]
     \column{0.52\textwidth}
-      
+      \begin{itemize}
+        \item Teste de interseção de baixo custo
+        \item Ajuste preciso
+        \item Cálculo econômico
+        \item Fácil de girar e transformar
+        \item Baixo consumo de memória
+      \end{itemize}
     \column{0.45\textwidth}
       \begin{figure}
         \centering
         \includesvg[width=\linewidth]{fecho-convexo-interseccao}
-        % Figura existente: casos A (não colide), B (AABB colide mas
-        % objetos não), C (colisão real)
       \end{figure}
     \end{columns}
 \end{frame}
@@ -521,6 +545,26 @@
 \section{Resultados}
 % ============================================================
 
+\begin{frame}{Ambiente de Visualização}
+  \begin{columns}[c]
+    \column{0.49\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{demo1.png}
+      \end{figure}
+    \column{0.49\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{demo2.png}
+      \end{figure}
+  \end{columns}
+  
+  \begin{center}
+    biblioteca typescript $\cdot$ modos SAT e GJK/EPA $\cdot$ p5.js
+  \end{center}
+  
+\end{frame}
+
 % ── Metodologia ─────────────────────────────────────────────
 \begin{frame}{Cenários de Teste}
   \begin{columns}[c]
@@ -530,13 +574,10 @@
         \item 180 quadros por config.
         \item Sem renderização
         \item \textit{Poisson Disk Sampling}
+        \item Ryzen 5 5500U, 24GB RAM DDR4, Ubuntu 24.04LTS
       \end{itemize}
-      \vspace{0.3cm}
-      4 configurações:\\
-      SAT/GJK $\times$ com/sem grade
     \column{0.52\textwidth}
       \includegraphics[width=\textwidth]{demo1.png}
-      % Figura: captura do cenário de teste
     \end{columns}
 \end{frame}
 
@@ -593,11 +634,9 @@
     \column{0.49\textwidth}
       \textbf{Trabalhos Futuros}
       \begin{itemize}
-        \item BVH / Quadtree na filtragem
-        \item Articulações e restrições angulares
-        \item Web Workers (multi-thread)
-        \item WebGPU
         \item Extensão para 3D
+        \item Paralelização com Webworks e WebGPU
+        \item BVH / Quadtree na filtragem
       \end{itemize}
   \end{columns}
 \end{frame}
