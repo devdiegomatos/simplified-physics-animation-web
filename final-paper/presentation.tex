@@ -239,8 +239,7 @@
 \begin{frame}{Teorema do Eixo Separador (SAT)}
   \begin{columns}[c]
     \column{0.42\textwidth}
-      Projeções de $A$ e $B$ \textbf{não se sobrepõem} em algum
-      eixo normal de aresta $\Rightarrow$ \textbf{sem colisão}.
+      As projeções de $A$ e $B$ estão sempre em lados opostos de um plano separador.
     \column{0.55\textwidth}
       \begin{figure}
         \centering
@@ -259,7 +258,7 @@
   \end{figure}
 
   \[
-    A - B = \{\,\vec{x}{-}\vec{y} \mid \vec{x}{\in}A,\,\vec{y}{\in}B\,\}
+    A - B = A + (-B) = \{\,\vec{x}{-}\vec{y} \mid \vec{x}{\in}A,\,\vec{y}{\in}B\,\}
   \]
   \vspace{0.3cm}
   \[
@@ -478,21 +477,9 @@
 \section{Otimizações}
 % ============================================================
 
-% ── Broad / Narrow ──────────────────────────────────────────
-\begin{frame}{Filtragem e Refinamento}
-  \begin{columns}[c]
-    \column{0.49\textwidth}
-      \begin{block}{\centering Fase de Filtragem\\ (Broad Phase)}
-        \centering Descartar pares impossíveis usando objetos delimitadores.
-      \end{block}
-    \column{0.49\textwidth}
-      \begin{block}{\centering Fase de Refinamento\\ (Narrow Phase)}
-        \centering Usar algoritmos sofisticados como SAT / GJK+EPA apenas nos pares candidatos
-      \end{block}
-  \end{columns}
-
-  \vfill
-
+\begin{frame}{Objetos Delimitadores}
+  Simplificar a geometria para testes rápidos de colisão.\\
+  
   \begin{figure}
     \centering
     \includesvg[width=\linewidth]{bounding_volumes}
@@ -501,7 +488,7 @@
 \end{frame}
 
 % ── AABB ────────────────────────────────────────────────────
-\begin{frame}
+\begin{frame}{AABB — Caixa Delimitadora Alinhada aos Eixos}
   \begin{columns}[c]
     \column{0.52\textwidth}
       \begin{itemize}
@@ -517,6 +504,20 @@
         \includesvg[width=\linewidth]{fecho-convexo-interseccao}
       \end{figure}
     \end{columns}
+\end{frame}
+
+% ── Broad / Narrow ──────────────────────────────────────────
+\begin{frame}{Filtragem e Refinamento}
+  \begin{columns}[c]
+    \column{0.49\textwidth}
+      \begin{block}{\centering Fase de Filtragem\\ (Broad Phase)}
+        \centering Descartar pares impossíveis usando objetos delimitadores.
+      \end{block}
+    \column{0.49\textwidth}
+      \begin{block}{\centering Fase de Refinamento\\ (Narrow Phase)}
+        \centering Usar algoritmos sofisticados como SAT / GJK+EPA apenas nos pares candidatos
+      \end{block}
+  \end{columns}
 \end{frame}
 
 % ── Grade uniforme ───────────────────────────────────────────
