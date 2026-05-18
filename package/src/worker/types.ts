@@ -36,10 +36,6 @@ export interface PhysicsCollidersInfo {
 // Representa o estado completo da simulação a ser enviado para a Main Thread
 export interface SimulationState {
     objects: PhysicsObjectState[];
-    collidersInfo: PhysicsCollidersInfo[];
-    particlesCount: number;
-    constraintsCount: number;
-    collisionsTests: number;
 }
 
 // Mensagens que a Main Thread pode enviar para o Worker

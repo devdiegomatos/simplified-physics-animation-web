@@ -96,7 +96,7 @@ import SceneThreaded from '@/scenes/SceneThreaded';
 // Component States
 let hasStarted = false,
     threaded = false;
-let totalEntities = 10;
+let totalEntities = 100;
 let broadPhase: BroadPhaseMode = BroadPhaseMode.GridSpatialPartition;
 let collisionDetection: CollisionDetectionMode = CollisionDetectionMode.GjkEpa;
 const fps = ref(0);
@@ -128,18 +128,10 @@ function start() {
         sketchInstance = new p5(sketch);
     }
 
-    window.addEventListener('keyup', (e) => {
-        if (e.code === 'Space') {
-            if (scene) {
-                scene.togglePause();
-            }
-        }
-    });
-
-    // if (threaded) {
-    //     worker = createEngineWorker();
-    //     worker.addEventListener('message', OnWorkerEvent);
-    // }
+    if (threaded) {
+        worker = createEngineWorker();
+        worker.addEventListener('message', OnWorkerEvent);
+    }
 }
 
 async function setup(p: p5) {
@@ -186,6 +178,7 @@ async function setup(p: p5) {
                 gravity: vec3.fromValues(0, 98, 0),
                 gridSize,
             },
+            objects: objs,
         };
         worker.postMessage(msg);
     } else {

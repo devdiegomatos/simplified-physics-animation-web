@@ -10,7 +10,7 @@ import Body from './Body';
 export default class PolygonBody extends Body {
     public wireframe: boolean = false;
 
-    constructor(particles: Particle[], restitution: number = 0.5) {
+    constructor(particles: Particle[], restitution: number = 0.5, isStatic: boolean = false) {
         // 1. Setup Constrains
         const constraints: IConstraint[] = [];
         const constraintsIndices: number[] = [];
@@ -26,12 +26,14 @@ export default class PolygonBody extends Body {
 
         // Internal strut constraints for rigidity (connecting every other vertex)
         for (let i = 0; i < particles.length; i++) {
+            const j = (i + 2) % particles.length
             const p1 = particles[i];
-            const p2 = particles[(i + 2) % particles.length];
+            const p2 = particles[j];
             constraints.push(new LinearConstraint(p1, p2));
+            constraintsIndices.push(i, j);
         }
 
-        super(particles, constraints);
+        super(particles, constraints, isStatic);
         this.constraintsIndices = constraintsIndices;
     }
 
@@ -59,7 +61,7 @@ export default class PolygonBody extends Body {
             );
         }
 
-        return new PolygonBody(particles, restitution);
+        return new PolygonBody(particles, restitution, isStatic);
     }
 
     triangulation(): { uvs: [number, number][]; indices: number[] } {

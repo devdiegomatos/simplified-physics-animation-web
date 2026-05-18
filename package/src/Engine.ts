@@ -256,8 +256,10 @@ export default class Engine {
             const acc = vec3.clone(this.gravity);
             vec3.scale(acc, acc, dt * dt);
 
-            vec3.add(particle.position, particle.position, velocity);
-            vec3.add(particle.position, particle.position, acc);
+            particle.position[0] = particle.position[0] + velocity[0] + acc[0];
+            particle.position[1] = particle.position[1] + velocity[1] + acc[1];
+            // vec3.add(particle.position, particle.position, velocity);
+            // vec3.add(particle.position, particle.position, acc);
         }
     }
 

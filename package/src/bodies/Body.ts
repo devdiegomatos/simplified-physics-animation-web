@@ -18,6 +18,7 @@ export default abstract class Body {
     constructor(
         public particles: Particle[] = [],
         public constraints: IConstraint[] = [],
+        public isStatic: boolean = false,
     ) {
         this.id = Body.nextId;
         Body.nextId++;

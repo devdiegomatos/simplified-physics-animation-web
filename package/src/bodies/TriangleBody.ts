@@ -25,6 +25,6 @@ export default class TriangleBody extends PolygonBody {
                 isStatic,
             ),
         ];
-        super(particles, restitution);
+        super(particles, restitution, isStatic);
     }
 }

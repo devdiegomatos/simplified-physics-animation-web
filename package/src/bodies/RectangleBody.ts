@@ -21,6 +21,6 @@ export default class RectangleBody extends PolygonBody {
             new Particle(vec3.fromValues(x + w2, y + h2, 0), 1, isStatic),
             new Particle(vec3.fromValues(x - w2, y + h2, 0), 1, isStatic),
         ];
-        super(particles, restitution);
+        super(particles, restitution, isStatic);
     }
 }
